@@ -1,4 +1,7 @@
 def input_recognition(inputs : list[str], debug = False) -> list[dict]:
+    '''interpretes the input file lines into automatas (language, final_states, raw_func).
+    gives them in a list of dictionaries, each dict contains the automata info.'''
+
     recogniced_automatas = []
 
     automatas_to_read = int(inputs[0][0])
@@ -6,13 +9,13 @@ def input_recognition(inputs : list[str], debug = False) -> list[dict]:
 
     index = 1
     for automata in range(automatas_to_read):
-        automata_len = int(inputs[index][0])
+        automata_func_len = int(inputs[index][0])
 
         language = inputs[index+1]
         final_states = list(map(int, inputs[index+2]))
-        raw_func = [list(map(int, i)) for i in inputs[index+3 : index+3+automata_len]]
+        raw_func = [list(map(int, i)) for i in inputs[index+3 : index+3+automata_func_len]] # this one needs explanation, probably
         
-        index += automata_len + 3
+        index += automata_func_len + 3
 
         recogniced_automatas.append({
             'language'      : language,         # list[str]
@@ -32,7 +35,7 @@ def input_recognition(inputs : list[str], debug = False) -> list[dict]:
 
 
 def function_interpreter(raw_func : list[list[int]], language : list[str]) -> dict[tuple[int, str], int]:
-    '''transforms the func/delta matrix into a dict into the [(input_state , input_character) -> output_state] way'''
+    '''transforms the func/delta matrix into a dict in the [(input_state , input_character) -> output_state] way'''
 
     func = {} # did you know that a dict can accept tuples as keys? :)
 
@@ -53,11 +56,19 @@ def function_interpreter(raw_func : list[list[int]], language : list[str]) -> di
 
 
 def equivalences_recognicer(language : list[str], final_states : list[int], func : dict[tuple, int]) -> list[list[tuple]]:
-    pass
+    '''the core of the activity. damn... i don't know how to do this...'''
+    
+    return [(1,2), (2,4), (7,8), (1,3), (1,4)]  # provisional
 
 
 def equivalences_printer(equivalences : list[list[tuple]]) -> None:
-    pass
+    '''the printing has a specific format. the tuples need to be lexicographically sorted and then printed without commas between tuples'''
+
+    sorted_equivalences = sorted(equivalences) # i thought i would have to do this manually, lucky me...
+
+    print(*sorted_equivalences) # this * is called depacking operator
+    # it "unpacks" the tuples from the list, so they are read by the print as multiple inputs, not as a tuples list. 
+    # it's perfect, because the default separator parameter for print() is " "
 
 
 # --------------------------------------------- M A I N ------------------------------------------------------
@@ -66,38 +77,35 @@ if __name__ == '__main__':
     with open('input.txt', 'r') as file:
         inputs = [i.split() for i in file.readlines()]
     
-    debug = True  # set True if u wanna see all the process                 # DEBUG <------------------------
+    debug = False  # set True if u wanna see all the process                  # DEBUG <------------------------
 
     recogniced_automatas = input_recognition(inputs, debug)
 
-    for automata_case in recogniced_automatas:
+    for automata in recogniced_automatas:
 
         # func (delta) has to be processed to have a [(state, input) -> state] form. Or, well... I wanted it that way.
-        func = function_interpreter(automata_case['raw_func'], automata_case['language'])
+        func = function_interpreter(automata['raw_func'], automata['language'])
 
-        '''
-        equivalences = equivalences_recognicer(language     = automata_case['language'], 
-                                               final_states = automata_case['final_states'], 
+        # the real core of the activity. what a headache...
+        equivalences = equivalences_recognicer(language     = automata['language'], 
+                                               final_states = automata['final_states'], 
                                                func         = func)
-        '''
 
-        # equivalences_printer(equivalences)
+        equivalences_printer(equivalences)
 
         if debug: 
             print('-'*10)
-            print('automata_case:', automata_case)
+            print('automata:', automata)
             print('func:', func)
+            print('equivalences (pre-formatting):', equivalences)
 
 
-'''
-    _                ___        _.--.
-    \`.|\..----...-'`   `-._.-' _.-'`
-    /  ' `         ,       __.-'
-    )/' _/     \   `-_,   /              
-    `-'" `"\_  ,_.-;_.-\_ ',    
-        _.-'_./   {_.'   ; /    E V G
-       {_.-``-'         {_/
-
-'''
-
-#dicta = {(2, 'b'): 1, (1, 'a'): 2}
+#
+#    _                ___        _.--.
+#    \`.|\..----...-'`   `-._.-' _.-'`
+#    /  ' `         ,       __.-'
+#    )/' _/     \   `-_,   /              
+#    `-'" `"\_  ,_.-;_.-\_ ',    
+#        _.-'_./   {_.'   ; /    E V G
+#       {_.-``-'         {_/
+#
