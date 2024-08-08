@@ -1,4 +1,4 @@
-def input_recognition(inputs : list[list[str]], debug = False) -> list[dict]:
+def input_recognition(inputs : list[list[str]], debug : bool = False) -> list[dict]:
     '''interpretes the input file lines into automatas (language, final_states, raw_func).
     gives them in a list of dictionaries, each dict contains the automata info.'''
 
@@ -56,7 +56,7 @@ def function_interpreter(raw_func : list[list[str]], language : list[str]) -> di
     return func
 
 
-def equivalences_recognicer(language : list[str], final_states : list[int], func : dict[tuple[int, str], int], debug : bool) -> list[list[tuple]]:
+def equivalences_recognicer(language : list[str], final_states : list[int], func : dict[tuple[int, str], int], debug : bool = False) -> list[list[tuple]]:
     '''the core of the activity. we recognize the equivalent states using Hopcroft's algorithm in O(n log n)
     https://en.wikipedia.org/wiki/Hopcroft-Karp_algorithm#Pseudocode'''
 
@@ -108,7 +108,7 @@ def equivalences_recognicer(language : list[str], final_states : list[int], func
                 # if one of them was empty, we can't accept that as a valid partition, so it doesn't matter
                 # the recursiveness stops in that case
 
-    if debug: print(equivs_partitions)
+    if debug: print('sets of equivalent states (pre-filter):', equivs_partitions)
 
     # at the end, the equivs partition has all the sets with equivalent states
     # but we need pairs, so we distribute them in all the possible pairs with brute force XD
@@ -126,8 +126,12 @@ def equivalences_recognicer(language : list[str], final_states : list[int], func
     return equivalences
 
 
-def equivalences_printer(equivalences : list[list[tuple]]) -> None:
+def equivalences_printer(equivalences : list[list[tuple]], debug : bool = False) -> None:
     '''the printing has a specific format. the tuples need to be lexicographically sorted and then printed without commas between tuples'''
+
+    if debug:
+        print('-'*10)
+        print('equivalences pre-ordering:', equivalences)
 
     # they were probably sorted since the start (line 117), but whatever-
     sorted_equivalences = sorted(equivalences) # i thought i would have to do this manually, lucky me...
@@ -150,25 +154,22 @@ if __name__ == '__main__':
     # list of dictionaries with each automata details
     recogniced_automatas = input_recognition(inputs, debug)
 
-    for automata in recogniced_automatas:
+    for n, automata in enumerate(recogniced_automatas):
+        if debug: print('-'*60,f'\nautomata {n+1}:', automata)
 
         # func (delta) has to be processed to have a [(state, input) -> state] form. Or, well... I wanted it that way.
         func = function_interpreter(automata['raw_func'], automata['language'])
+        if debug: print('func:', func)
 
         # the real core of the activity. what a headache...
         equivalences = equivalences_recognicer(language     = automata['language'], 
                                                final_states = automata['final_states'], 
                                                func         = func,
                                                debug        = debug)
+        if debug: print('equivalences (pre-formatting):', equivalences)
 
         # just the formatting
         equivalences_printer(equivalences)
-
-        if debug: 
-            print('-'*10)
-            print('automata:', automata)
-            print('func:', func)
-            print('equivalences (pre-formatting):', equivalences)
 
 
 #
