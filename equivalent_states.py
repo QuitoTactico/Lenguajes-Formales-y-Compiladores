@@ -65,8 +65,12 @@ def equivalences_recognicer(language : list[str], final_states : list[int], func
     non_final_states_set = states - final_states_set    # get the non final states
 
     # they are just a list with both sets. the union of a list, creates the states universe.
-    equivs_partition = [final_states_set, non_final_states_set]     # at the end, it will have sets of equivalent states
-    work_partition   = [final_states_set, non_final_states_set]     # we will iterate on this one until it empties
+    equivs_partitions = [final_states_set, non_final_states_set]     # at the end, it will have sets of equivalent states
+    work_partition    = [final_states_set, non_final_states_set]     # we will iterate on this one until it empties
+
+    # if we make smaller and smaller partitions until it's not possible to create more
+    # and that partitions are made taken in count to where the states go
+    # at the end, the sets with more than one state, will be sets of equivalent states.
 
     while work_partition:   # while the work partition is not empty...
 
@@ -77,27 +81,25 @@ def equivalences_recognicer(language : list[str], final_states : list[int], func
             # that character as input, outputs a state in the extracted set. basically backtracking
             X = {state for state in states if func.get((state, character)) in extracted_set} # BACKTRACK STATES
 
-            # for each set in the initial partition (starting with the final states)
-            for Y in equivs_partition[:]: # [:] creates a copy, so we don't worry if the original one is modified
+            # for each set in the equivs partition (starting with the final states)
+            for Y in equivs_partitions[:]: # [:] creates a copy, so we don't worry if the original one is modified
 
-                intersection = X & Y    # states in both
-                difference = Y - X      # states in Y, not in X
+                intersection = X & Y    # states in both (states that go to the selected set)
+                difference = Y - X      # states in Y, not in X (states that doesn't)
 
                 if intersection and difference: # if both are not empty...
 
-                    equivs_partition.remove(Y)            # we just accept the new partition
-                    equivs_partition.append(intersection) # and replace the set with its intersection with X
-                    equivs_partition.append(difference)   # and the things that are only in Y
+                    equivs_partitions.remove(Y)            # we just accept the new partition
+                    equivs_partitions.append(intersection) # and replace the set with the states that go
+                    equivs_partitions.append(difference)   # and the states that doesn't
 
-                    # as you see, the things that were only in X are ignored, there resides the minimization
-                    
-                    # if that set was also in the work partition, we replace it there too
+                    # if that set was also in the work partition, we replace it there too to keep iterating
                     if Y in work_partition:
                         work_partition.remove(Y)
                         work_partition.append(intersection)
                         work_partition.append(difference)
                     else:
-                        # if not, we append the shorter part of the new partition. there resides the minimization
+                        # if not, we append the shorter part of the new partition. there resides the O(n log n)
                         if len(intersection) <= len(difference):
                             work_partition.append(intersection)
                         else:
@@ -106,10 +108,10 @@ def equivalences_recognicer(language : list[str], final_states : list[int], func
                 # if one of them was empty, we can't accept that as a valid partition, so it doesn't matter
                 # the recursiveness stops in that case
 
-    # at the end, the initial partition has all the sets of equivalent states
+    # at the end, the equivs partition has all the sets with equivalent states
     # but we need pairs, so we distribute them in all the possible pairs with brute force XD
     equivalences = []
-    for group in equivs_partition:
+    for group in equivs_partitions:
         group_list = sorted(group)  # set -> sorted list
 
         # this is like when you multiply (x,y,z) * (a,b,c)
@@ -118,13 +120,14 @@ def equivalences_recognicer(language : list[str], final_states : list[int], func
             for j in range(i + 1, len(group_list)):
                 equivalences.append((group_list[i], group_list[j]))
 
-    # what a headache... i hope we see this in a more visual way
+    # what a headache... 
     return equivalences
 
 
 def equivalences_printer(equivalences : list[list[tuple]]) -> None:
     '''the printing has a specific format. the tuples need to be lexicographically sorted and then printed without commas between tuples'''
 
+    # they were probably sorted since the start (line 117), but whatever-
     sorted_equivalences = sorted(equivalences) # i thought i would have to do this manually, lucky me...
 
     print(*sorted_equivalences) # this * is called depacking operator, it's not a pointer
