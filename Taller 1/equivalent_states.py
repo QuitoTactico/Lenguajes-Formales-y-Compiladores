@@ -56,7 +56,7 @@ def function_interpreter(raw_func : list[list[str]], language : list[str]) -> di
     return func
 
 
-def equivalences_recognicer(language : list[str], final_states : list[int], func : dict[tuple[int, str], int]) -> list[list[tuple]]:
+def equivalences_recognicer(language : list[str], final_states : list[int], func : dict[tuple[int, str], int], debug : bool) -> list[list[tuple]]:
     '''the core of the activity. we recognize the equivalent states using Hopcroft's algorithm in O(n log n)
     https://en.wikipedia.org/wiki/Hopcroft-Karp_algorithm#Pseudocode'''
 
@@ -108,6 +108,8 @@ def equivalences_recognicer(language : list[str], final_states : list[int], func
                 # if one of them was empty, we can't accept that as a valid partition, so it doesn't matter
                 # the recursiveness stops in that case
 
+    if debug: print(equivs_partitions)
+
     # at the end, the equivs partition has all the sets with equivalent states
     # but we need pairs, so we distribute them in all the possible pairs with brute force XD
     equivalences = []
@@ -145,6 +147,7 @@ if __name__ == '__main__':
         # the input is being read as a string matrix from the start
         inputs = [i.split() for i in file.readlines()]
     
+    # list of dictionaries with each automata details
     recogniced_automatas = input_recognition(inputs, debug)
 
     for automata in recogniced_automatas:
@@ -155,8 +158,10 @@ if __name__ == '__main__':
         # the real core of the activity. what a headache...
         equivalences = equivalences_recognicer(language     = automata['language'], 
                                                final_states = automata['final_states'], 
-                                               func         = func)
+                                               func         = func,
+                                               debug        = debug)
 
+        # just the formatting
         equivalences_printer(equivalences)
 
         if debug: 
