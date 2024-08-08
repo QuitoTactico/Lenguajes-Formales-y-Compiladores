@@ -8,7 +8,7 @@ def input_recognition(inputs : list[list[str]], debug = False) -> list[dict]:
     if debug: print('automatas_to_read:', automatas_to_read)
 
     index = 1   # this index is where the "reading pointer" is (row)
-    
+
     for automata in range(automatas_to_read):
         automata_func_len = int(inputs[index][0])   # the first automata input being read. it's the Vlen of the int matrix
 
@@ -56,10 +56,70 @@ def function_interpreter(raw_func : list[list[str]], language : list[str]) -> di
     return func
 
 
-def equivalences_recognicer(language : list[str], final_states : list[int], func : dict[tuple, int]) -> list[list[tuple]]:
-    '''the core of the activity. damn... i don't know how to do this...'''
-    
-    return [(1,2), (2,4), (7,8), (1,3), (1,4)]  # provisional
+def equivalences_recognicer(language : list[str], final_states : list[int], func : dict[tuple[int, str], int]) -> list[list[tuple]]:
+    '''the core of the activity. we recognize the equivalent states using Hopcroft's algorithm in O(n log n)
+    https://en.wikipedia.org/wiki/Hopcroft-Karp_algorithm#Pseudocode'''
+
+    states = set(state for state, _ in func.keys()) # the start of each tuple key is a state. set deletes the duplicates
+    final_states_set = set(final_states)    # the same list of final states, but making it a set allows us to...
+    non_final_states_set = states - final_states_set    # get the non final states
+
+    # they are just a list with both sets. the union of a list, creates the states universe.
+    equivs_partition = [final_states_set, non_final_states_set]     # at the end, it will have sets of equivalent states
+    work_partition   = [final_states_set, non_final_states_set]     # we will iterate on this one until it empties
+
+    while work_partition:   # while the work partition is not empty...
+
+        extracted_set = work_partition.pop()    # extracts the LAST set of the work list
+
+        for character in language:
+            # for each character in the languaje, it gets all the states that receiving
+            # that character as input, outputs a state in the extracted set. basically backtracking
+            X = {state for state in states if func.get((state, character)) in extracted_set} # BACKTRACK STATES
+
+            # for each set in the initial partition (starting with the final states)
+            for Y in equivs_partition[:]: # [:] creates a copy, so we don't worry if the original one is modified
+
+                intersection = X & Y    # states in both
+                difference = Y - X      # states in Y, not in X
+
+                if intersection and difference: # if both are not empty...
+
+                    equivs_partition.remove(Y)            # we just accept the new partition
+                    equivs_partition.append(intersection) # and replace the set with its intersection with X
+                    equivs_partition.append(difference)   # and the things that are only in Y
+
+                    # as you see, the things that were only in X are ignored, there resides the minimization
+                    
+                    # if that set was also in the work partition, we replace it there too
+                    if Y in work_partition:
+                        work_partition.remove(Y)
+                        work_partition.append(intersection)
+                        work_partition.append(difference)
+                    else:
+                        # if not, we append the shorter part of the new partition. there resides the minimization
+                        if len(intersection) <= len(difference):
+                            work_partition.append(intersection)
+                        else:
+                            work_partition.append(difference)
+
+                # if one of them was empty, we can't accept that as a valid partition, so it doesn't matter
+                # the recursiveness stops in that case
+
+    # at the end, the initial partition has all the sets of equivalent states
+    # but we need pairs, so we distribute them in all the possible pairs with brute force XD
+    equivalences = []
+    for group in equivs_partition:
+        group_list = sorted(group)  # set -> sorted list
+
+        # this is like when you multiply (x,y,z) * (a,b,c)
+        # you do x*a, x*b, x*c, y*a, ... , z*c (first first, first second, first third, second first, and so on)
+        for i in range(len(group_list)):
+            for j in range(i + 1, len(group_list)):
+                equivalences.append((group_list[i], group_list[j]))
+
+    # what a headache... i hope we see this in a more visual way
+    return equivalences
 
 
 def equivalences_printer(equivalences : list[list[tuple]]) -> None:
