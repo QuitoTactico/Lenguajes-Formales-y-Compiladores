@@ -96,7 +96,7 @@ https://replit.com/@QuitoTactico/Lenguajes-Formales-y-Compiladores#Taller%202/CK
 
 The grammar proposed is the $a^n b^n$ grammar on CNF.
 
-## Grammar Specification
+## Grammar Specifications
 ```
 G = (N, Σ, P, S)
 
@@ -112,7 +112,12 @@ S = S
 ```
 ## Generated Language
 
-It generates the context-free language $L(G) =$ { $a^n b^n | n \geq 0$ }.
+It generates the context-free language $L(G) =$ { $a^n b^n | n \geq 0$ }.  
+L(G) = { a^n b^n | n >= 0 }, if you can't see the LaTeX formula.
+
+
+For example, some words in the language are:  
+L(G) = { ε, ab, aabb, aaabbb, aaaabbbb, ... }
 
 ## Sucess and Failure Cases
 
