@@ -1,4 +1,4 @@
-3
+4
 5 5
 S AB BA SS AC BD
 C SB
@@ -27,3 +27,16 @@ aaaaaaaaaaab
 b
 bb
 abb
+4 8
+S AB AC
+C SB
+A a
+B b
+aabb
+aaaabbbb
+ab
+aaaaaaaabbbb
+abab
+aaabbbaabbab
+aabab
+aaabbb
