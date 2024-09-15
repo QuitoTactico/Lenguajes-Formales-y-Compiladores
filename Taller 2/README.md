@@ -1,0 +1,87 @@
+# README.md
+
+- **Group Members**: 
+  - Esteban Vergara Giraldo
+
+- **Operating System**: Windows 10 Pro (x64)
+- **Programming Language**: Python 3.12.6 (x64)
+- **Tools Used**: 
+  - Visual Studio Code 1.93 (Windows x64) [Code Editor]
+  - Git 2.46.1 (Windows x64) [Version Control System]
+
+## Instructions for Running the Implementation on Replit
+
+1. Open the following link:   
+[![Run on Replit](https://replit.com/badge)](https://replit.com/@QuitoTactico/Lenguajes-Formales-y-Compiladores#Taller%202/CKY.py)
+
+2. (OPTIONAL) Change the input.txt file to the desired input, or use the default one. The input string must be in the following format:
+
+    ```
+    <number_of_grammars>
+    <number_of_productions_for_grammar_1> <number_of_words_for_grammar_1>
+    <lhs_1> <rhs_1>
+    <lhs_2> <rhs_2>
+    ...
+    <word_1>
+    <word_2>
+    ...
+    <number_of_productions_for_grammar_2> <number_of_words_for_grammar_2>
+    <lhs_1> <rhs_1>
+    <lhs_2> <rhs_2>
+    ...
+    <word_1>
+    <word_2>
+    ...
+    ```
+
+3. Hit the green "Run" button at the top of the screen.
+
+## Instructions for Running the Implementation Locally
+
+1. Download and decompress the ZIP file, or clone the repository to your local machine using git.
+
+    ```bash
+    # If you want to clone the repository, you need to download and install Git from https://git-scm.com/downloads
+    git clone https://github.com/QuitoTactico/Lenguajes-Formales-y-Compiladores
+    ```
+
+2. Open CMD (command prompt) and navigate to the directory where the implementation is located.
+    
+    ```bash
+    cd Lenguajes-Formales-y-Compiladores
+    cd "Taller 2"
+    ```
+
+4. (OPTIONAL) Change the input.txt file to the desired input, or use the default one. The input string must be in the following format:
+
+    ```
+    <number_of_grammars>
+    <number_of_productions_for_grammar_1> <number_of_words_for_grammar_1>
+    <lhs_1> <rhs_1>
+    <lhs_2> <rhs_2>
+    ...
+    <word_1>
+    <word_2>
+    ...
+    <number_of_productions_for_grammar_2> <number_of_words_for_grammar_2>
+    <lhs_1> <rhs_1>
+    <lhs_2> <rhs_2>
+    ...
+    <word_1>
+    <word_2>
+    ...
+    ```
+
+5. Run the `CKY.py` file using.
+    
+    ```bash
+    # On Windows:
+    python CKY.py
+    ```
+
+    ```bash
+    # On Linux:
+    python3 CKY.py
+    ```
+
+
