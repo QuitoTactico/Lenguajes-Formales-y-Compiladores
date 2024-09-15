@@ -112,7 +112,7 @@ S = S
 ```
 ## Generated Language
 
-It generates the context-free language $L(G) = \{a^n b^n | n \geq 0\}$.
+It generates the context-free language $L(G) =$ { $a^n b^n | n \geq 0$ }.
 
 ## Sucess and Failure Cases
 
