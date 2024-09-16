@@ -94,7 +94,7 @@ https://replit.com/@QuitoTactico/Lenguajes-Formales-y-Compiladores#Taller%202/CK
 
 # Proposed CNF Grammar and its Generated Language
 
-The grammar proposed is the $a^n b^n$ grammar on CNF.
+The grammar proposed is the $a^n b^n$ (with n >= 1) grammar on CNF.
 
 ## Grammar Specifications
 ```
@@ -112,12 +112,14 @@ S = S
 ```
 ## Generated Language
 
-It generates the context-free language $L(G) =$ { $a^n b^n | n \geq 0$ }.  
-L(G) = { a^n b^n | n >= 0 }, if you can't see the LaTeX formula.
+It generates the context-free language $L(G) =$ { $a^n b^n | n \geq 1$ }.  
+L(G) = { a^n b^n | n >= 1 }, if you can't see the LaTeX formula.
 
 
 For example, some words in the language are:  
-L(G) = { ε, ab, aabb, aaabbb, aaaabbbb, ... }
+L(G) = { ab, aabb, aaabbb, aaaabbbb, ... }
+
+As you see, the language is composed of words with the same number of 'a's and 'b's, and the number of 'a's or 'b's is always greater than 0. So, the language cannot generate the empty string.
 
 ## Sucess and Failure Cases
 
@@ -132,6 +134,9 @@ Failure cases:
 - abab
 - aaabbbaabbab
 - aabab
+- aaababbb
+- aabbab
+- ε
 
 
 ## Changes in input.txt and their meaning or output
