@@ -99,7 +99,11 @@ def follows(grammar: dict[str, dict[str, set[str]]]) -> None:
 
 
 def result_printer(grammar: dict[str, dict[str, set[str]]]) -> None:
-    pass
+    for result in ["firsts", "follows"]:
+        for non_terminal in grammar.keys():
+            print(
+                f"{result.capitalize()[:-1]}({non_terminal}) = {{{','.join(grammar[non_terminal][result])}}}"
+            )
 
 
 if __name__ == "__main__":
