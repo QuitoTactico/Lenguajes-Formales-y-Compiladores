@@ -1,7 +1,7 @@
 import os
 
 
-def input_recognition(inputs: list[str]) -> list[dict[str, list[str]]]:
+def input_recognition(inputs: list[str]) -> list[dict[str, dict[str, list[str]]]]:
     grammars = []
 
     grammars_to_read = int(inputs[0][0])
@@ -18,11 +18,23 @@ def input_recognition(inputs: list[str]) -> list[dict[str, list[str]]]:
                 grammar[non_terminal] = []
             grammar[non_terminal].extend(productions)
 
-        grammars.append(grammar)
+        grammars.append({"productions": grammar})
 
         line_index += 1 + grammar_len
 
     return grammars
+
+
+def firsts(grammar: dict[str, dict[str, list[str]]]) -> None:
+    pass
+
+
+def follows(grammar: dict[str, dict[str, list[str]]]) -> None:
+    pass
+
+
+def result_printer(grammar: dict[str, dict[str, list[str]]]) -> None:
+    pass
 
 
 if __name__ == "__main__":
@@ -40,7 +52,9 @@ if __name__ == "__main__":
     grammars = input_recognition(inputs)
 
     for case_index, grammar in enumerate(grammars):
-        print(grammar)
+        firsts(grammar)
+        follows(grammar)
+        result_printer(grammar)
 
 
 #
