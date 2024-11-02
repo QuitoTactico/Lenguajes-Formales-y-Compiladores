@@ -38,20 +38,20 @@ def wtf_is_this(letter: str) -> str:
         return "epsilon"
     elif letter.isupper():
         return "non-terminal"
-    else:
+    elif len(letter) == 1:
         return "terminal"
 
 
 def firsts(grammar: dict[str, dict[str, set[str]]]) -> None:
-    def first(non_terminal: str, recursion: int = 0) -> set:
+    def first(non_terminal: str, recursion: int = 0, cache: bool = True) -> set:
         # terminal case (1)
         if wtf_is_this(non_terminal) == "terminal":
             return non_terminal
 
         # non-terminal case (2)
         else:
-            # if it has been already calculated
-            if grammar[non_terminal]["firsts"]:
+            # if it has been already calculated and the option is active
+            if grammar[non_terminal]["firsts"] and cache:
                 return grammar[non_terminal]["firsts"]
 
             # check for the epsilons first (2.c)
@@ -81,17 +81,19 @@ def firsts(grammar: dict[str, dict[str, set[str]]]) -> None:
                     if non_epsilon_found == False:
                         grammar[non_terminal]["firsts"].add("e")
 
-                # if it reaches the recursion limit, we return the firsts we were capable of obtain
+                # if it reaches the recursion limit, we try with the next production
                 except:
-                    # return grammar[non_terminal]['firsts']
                     pass
 
             return grammar[non_terminal]["firsts"]
 
-    for non_terminal in grammar.keys():
-        non_terminal_firsts = first(non_terminal)
+    # two tries, the second one is useful for the non-terminals who exceeded the recursion limit
+    for i in range(2):
+        # we search the firsts for each non-terminal
+        for non_terminal in grammar.keys():
+            non_terminal_firsts = first(non_terminal, cache=False)
 
-        grammar[non_terminal]["firsts"].update(non_terminal_firsts)
+            grammar[non_terminal]["firsts"].update(non_terminal_firsts)
 
 
 def follows(grammar: dict[str, dict[str, set[str]]]) -> None:
@@ -104,6 +106,7 @@ def result_printer(grammar: dict[str, dict[str, set[str]]]) -> None:
             print(
                 f"{result.capitalize()[:-1]}({non_terminal}) = {{{','.join(grammar[non_terminal][result])}}}"
             )
+    print()
 
 
 if __name__ == "__main__":
@@ -120,7 +123,6 @@ if __name__ == "__main__":
         firsts(grammar)
         follows(grammar)
         result_printer(grammar)
-        print()
 
 
 #
