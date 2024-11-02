@@ -11,16 +11,22 @@ def input_recognition(inputs: list[str]) -> list[dict[str, dict[str, set[str]]]]
     for _ in range(grammars_to_read):
         grammar_len = int(inputs[line_index][0])
 
-        grammar = {"productions": {}, "firsts": {}, "follows": {}}
-        for i in range(line_index + 1, line_index + 1 + grammar_len):
-            non_terminal, *productions = inputs[i]
-            if non_terminal not in grammar["productions"]:
-                grammar["productions"][non_terminal] = set()
-                grammar["firsts"][non_terminal] = set()
-                grammar["follows"][non_terminal] = set()
-            grammar["follows"][non_terminal].update(productions)
+        grammar = {}
 
-        grammars.append()
+        for i in range(line_index + 1, line_index + 1 + grammar_len):
+
+            non_terminal, *productions = inputs[i]
+
+            if non_terminal not in grammar:
+                grammar[non_terminal] = {
+                    "productions": set(),
+                    "firsts": set(),
+                    "follows": set(),
+                }
+
+            grammar[non_terminal]["productions"].update(productions)
+
+        grammars.append(grammar)
 
         line_index += 1 + grammar_len
 
@@ -32,7 +38,7 @@ def wtf_is_this(letter: str) -> str:
         return "epsilon"
     elif letter.isupper():
         return "non-terminal"
-    elif letter.islower():
+    else:
         return "terminal"
 
 
@@ -41,8 +47,8 @@ def firsts(grammar: dict[str, dict[str, set[str]]]) -> None:
         if wtf_is_this(letter) == "terminal":
             grammar
 
-    for i in grammar["productions"].keys():
-        pass
+    for i in grammar.keys():
+        print(i)
 
 
 def follows(grammar: dict[str, dict[str, set[str]]]) -> None:
