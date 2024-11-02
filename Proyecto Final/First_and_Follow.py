@@ -43,115 +43,116 @@ def wtf_is_this(letter: str) -> str:
         return "terminal"
 
 
-def firsts_calculus(
-    grammar: dict[str, dict[str, set[str]]],
-    non_terminal: str,
-    recursion: int = 0,
-    cache: bool = True,
-) -> set:
-    # terminal case (1)
-    if wtf_is_this(non_terminal) == "terminal":
-        return {non_terminal}
+def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
 
-    # non-terminal case (2)
-    else:
-        # if it has been already calculated and the option is active
-        if grammar[non_terminal]["firsts"] and cache:
+    def firsts_calculus(
+        non_terminal: str,
+        recursion: int = 0,
+        cache: bool = True,
+    ) -> set:
+        # terminal case (1)
+        if wtf_is_this(non_terminal) == "terminal":
+            return {non_terminal}
+
+        # non-terminal case (2)
+        else:
+            # if it has been already calculated and the option is active
+            if grammar[non_terminal]["firsts"] and cache:
+                return grammar[non_terminal]["firsts"]
+
+            # check for the epsilons first (2.c)
+            if "e" in grammar[non_terminal]["productions"]:
+                grammar[non_terminal]["firsts"].add("e")
+
+            # if it reached the recursion limit
+            elif recursion == 20:
+                raise RecursionError
+
+            # for each production of that non-terminal...
+            for production in grammar[non_terminal]["productions"]:
+                try:
+                    non_epsilon_found = False
+
+                    # for each letter of that production...
+                    for letter in production:
+                        letter_firsts = firsts_calculus(letter, recursion + 1)
+
+                        # if we find a firsts set with no epsilon, we add that set (2.a)
+                        if "e" not in letter_firsts:
+                            grammar[non_terminal]["firsts"].update(letter_firsts)
+                            non_epsilon_found = True
+                            break
+
+                    # if every letter has a firsts set with epsilon, we add epsilon (2.b)
+                    if not non_epsilon_found:
+                        grammar[non_terminal]["firsts"].add("e")
+
+                # if it reaches the recursion limit, we try with the next production
+                except RecursionError:
+                    pass
+
             return grammar[non_terminal]["firsts"]
 
-        # check for the epsilons first (2.c)
-        if "e" in grammar[non_terminal]["productions"]:
-            grammar[non_terminal]["firsts"].add("e")
+    def firsts_search() -> None:
+        # we will repeat until there's no updates
+        while True:
+            last_grammar = copy.deepcopy(grammar)
 
-        # if it reached the recursion limit
-        elif recursion == 20:
-            raise RecursionError
+            # we search the firsts for each non-terminal
+            for non_terminal in grammar.keys():
+                non_terminal_firsts = firsts_calculus(non_terminal, cache=False)
+                grammar[non_terminal]["firsts"].update(non_terminal_firsts)
 
-        # for each production of that non-terminal...
-        for production in grammar[non_terminal]["productions"]:
-            try:
-                non_epsilon_found = False
+            if grammar == last_grammar:
+                break
 
-                # for each letter of that production...
-                for letter in production:
-                    letter_firsts = firsts_calculus(grammar, letter, recursion + 1)
+    def follows_calculus(
+        non_terminal: str,
+        recursion: int = 0,
+        cache: bool = True,
+    ) -> set:
+        # if the non-terminal is the initial symbol "S", add $(1)
+        if non_terminal == "S":
+            grammar[non_terminal]["follows"].add("$")
 
-                    # if we find a firsts set with no epsilon, we add that set (2.a)
-                    if "e" not in letter_firsts:
-                        grammar[non_terminal]["firsts"].update(letter_firsts)
-                        non_epsilon_found = True
-                        break
+        # for each production of each non-terminal...
+        for nt in grammar.keys():
+            for production in grammar[nt]["productions"]:
+                if non_terminal in production:
+                    index = production.index(non_terminal)
 
-                # if every letter has a firsts set with epsilon, we add epsilon (2.b)
-                if not non_epsilon_found:
-                    grammar[non_terminal]["firsts"].add("e")
+                    # if the right hand letter is a terminal, add it (2)
+                    if index + 1 < len(production):
+                        next_letter = production[index + 1]
+                        if wtf_is_this(next_letter) == "terminal":
+                            grammar[non_terminal]["follows"].add(next_letter)
+                        else:
+                            grammar[non_terminal]["follows"].update(
+                                firsts_calculus(next_letter) - {"e"}
+                            )
 
-            # if it reaches the recursion limit, we try with the next production
-            except RecursionError:
-                pass
-
-        return grammar[non_terminal]["firsts"]
-
-
-def firsts_search(grammar: dict[str, dict[str, set[str]]]) -> None:
-    # we will repeat until there's no updates
-    while True:
-        last_grammar = copy.deepcopy(grammar)
-
-        # we search the firsts for each non-terminal
-        for non_terminal in grammar.keys():
-            non_terminal_firsts = firsts_calculus(grammar, non_terminal, cache=False)
-            grammar[non_terminal]["firsts"].update(non_terminal_firsts)
-
-        if grammar == last_grammar:
-            break
-
-
-def follows_calculus(
-    grammar: dict[str, dict[str, set[str]]],
-    non_terminal: str,
-    recursion: int = 0,
-    cache: bool = True,
-) -> set:
-    # if the non-terminal is the initial symbol "S", add $(1)
-    if non_terminal == "S":
-        grammar[non_terminal]["follows"].add("$")
-
-    # for each production of each non-terminal...
-    for nt in grammar.keys():
-        for production in grammar[nt]["productions"]:
-            if non_terminal in production:
-                index = production.index(non_terminal)
-
-                # if the right hand letter is a terminal, add it (2)
-                if index + 1 < len(production):
-                    next_letter = production[index + 1]
-                    if wtf_is_this(next_letter) == "terminal":
-                        grammar[non_terminal]["follows"].add(next_letter)
+                    # if the right hand letter is the last one, add the follows of the left hand (3)
                     else:
-                        grammar[non_terminal]["follows"].update(
-                            firsts_calculus(grammar, next_letter) - {"e"}
-                        )
+                        grammar[non_terminal]["follows"].update(grammar[nt]["follows"])
 
-                # if the right hand letter is the last one, add the follows of the left hand (3)
-                else:
-                    grammar[non_terminal]["follows"].update(grammar[nt]["follows"])
+        return grammar[non_terminal]["follows"]
 
-    return grammar[non_terminal]["follows"]
+    def follows_search() -> None:
+        # we will repeat until there's no updates
+        while True:
+            last_grammar = copy.deepcopy(grammar)
 
+            # we search the follows for each non-terminal
+            for non_terminal in grammar.keys():
+                non_terminal_follows = follows_calculus(non_terminal, cache=False)
+                grammar[non_terminal]["follows"].update(non_terminal_follows)
 
-def follows_search(grammar: dict[str, dict[str, set[str]]]) -> None:
-    # we will repeat until there's no updates
-    while True:
-        last_grammar = copy.deepcopy(grammar)
+            if grammar == last_grammar:
+                break
 
-        # we search the follows for each non-terminal
-        for non_terminal in grammar.keys():
-            non_terminal_follows = follows_calculus(grammar, non_terminal, cache=False)
-            grammar[non_terminal]["follows"].update(non_terminal_follows)
-
-        if grammar == last_grammar:
-            break
+    # principal search body
+    firsts_search()
+    # follows_search()
 
 
 def result_printer(grammar: dict[str, dict[str, set[str]]]) -> None:
@@ -174,8 +175,7 @@ if __name__ == "__main__":
     grammars = input_recognition(inputs)
 
     for case_index, grammar in enumerate(grammars):
-        firsts_search(grammar)
-        #follows_search(grammar)
+        firsts_and_follows(grammar)
         result_printer(grammar)
 
 
