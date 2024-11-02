@@ -47,7 +47,7 @@ def symbol_categorizer(letter: str) -> str:
 
 def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
 
-    def firsts_calculus_symbol(
+    def firsts_symbol(
         non_terminal: str,
         recursion: int = 0,
         cache: bool = True,
@@ -77,7 +77,7 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
 
                     # for each symbol of that production...
                     for symbol in production:
-                        symbol_firsts = firsts_calculus_symbol(symbol, recursion + 1)
+                        symbol_firsts = firsts_symbol(symbol, recursion + 1)
 
                         # if we find a firsts set with no epsilon, we add that set (2.a)
                         if "e" not in symbol_firsts:
@@ -95,7 +95,27 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
 
             return grammar[non_terminal]["firsts"]
 
-    def follows_calculus(
+    def firsts_word(word: str) -> set:
+        word_firsts = set()
+
+        for index, symbol in enumerate(word):
+            # add every non-epsilon symbols of that symbol firsts (1)
+            symbol_firsts = firsts_symbol(symbol)
+
+            word_firsts.update(symbol_firsts - {"e"})
+
+            # we keep adding the firsts of each symbol until there's no epsilon in the search (2, 3)
+            if "e" not in symbol_firsts:
+                break
+
+            # if we are in the last symbol and epsilon was in every firsts set, we add epsilon
+            elif index == len(word) - 1:
+                word_firsts.add("e")
+
+        return word_firsts
+
+    # only avaliable for symbols
+    def follows(
         non_terminal: str,
         recursion: int = 0,
         cache: bool = True,
@@ -117,7 +137,7 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
                             grammar[non_terminal]["follows"].add(next_letter)
                         else:
                             grammar[non_terminal]["follows"].update(
-                                firsts_calculus_symbol(next_letter) - {"e"}
+                                firsts_symbol(next_letter) - {"e"}
                             )
 
                     # if the right hand letter is the last one, add the follows of the left hand (3)
@@ -126,7 +146,7 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
 
         return grammar[non_terminal]["follows"]
 
-    def calculus_select(search: str) -> None:
+    def search_select(search: str) -> None:
         # we will repeat until there's no updates
         while True:
             last_grammar = copy.deepcopy(grammar)
@@ -134,12 +154,10 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
             # we search the firsts or follows for each non-terminal
             for non_terminal in grammar.keys():
                 if search == "firsts":
-                    non_terminal_firsts = firsts_calculus_symbol(
-                        non_terminal, cache=False
-                    )
+                    non_terminal_firsts = firsts_symbol(non_terminal, cache=False)
                     grammar[non_terminal]["firsts"].update(non_terminal_firsts)
                 elif search == "follows":
-                    non_terminal_follows = follows_calculus(non_terminal, cache=False)
+                    non_terminal_follows = follows(non_terminal, cache=False)
                     grammar[non_terminal]["follows"].update(non_terminal_follows)
 
             # if there's no updates in an iteration, if finishes the search
@@ -147,8 +165,8 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
                 break
 
     # principal search body
-    calculus_select("firsts")
-    # search_select("follows")
+    search_select("firsts")
+    #search_select("follows")
 
 
 def result_printer(grammar: dict[str, dict[str, set[str]]]) -> None:
