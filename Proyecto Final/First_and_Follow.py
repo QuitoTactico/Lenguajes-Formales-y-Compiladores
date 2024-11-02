@@ -170,18 +170,10 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
     # search_select("follows")
 
 
-def result_printer(grammar: dict[str, dict[str, set[str]]]) -> None:
-    for result in ["firsts", "follows"]:
-        for non_terminal in grammar.keys():
-            print(
-                f"{result.capitalize()[:-1]}({non_terminal}) = {{{','.join(grammar[non_terminal][result])}}}"
-            )
-    print()
+# ======================== MAIN BODY ========================
 
 
-# =========================== MAIN ===========================
-
-if __name__ == "__main__":
+def get_firsts_and_follows() -> list[dict[str, dict[str, set[str]]]]:
     # input needs to be in the same folder of this code
     script_dir = os.path.dirname(__file__)
     input_file_path = os.path.join(script_dir, "input.txt")
@@ -195,9 +187,25 @@ if __name__ == "__main__":
     grammars = input_recognition(inputs)
 
     # we fill the "firsts" and "follows" dictionary of each non-terminal, and """"that's all"""" (horrific XD)
-    for case_index, grammar in enumerate(grammars):
+    for grammar in grammars:
         firsts_and_follows(grammar)
-        result_printer(grammar)
+
+    return grammars
+
+
+def result_printer(grammars: list[dict[str, dict[str, set[str]]]]) -> None:
+    for grammar in grammars:
+        for result in ["firsts", "follows"]:
+            for non_terminal in grammar.keys():
+                print(
+                    f"{result.capitalize()[:-1]}({non_terminal}) = {{{','.join(grammar[non_terminal][result])}}}"
+                )
+        print()
+
+
+if __name__ == "__main__":
+    grammars = get_firsts_and_follows()
+    result_printer(grammars)
 
 
 #
