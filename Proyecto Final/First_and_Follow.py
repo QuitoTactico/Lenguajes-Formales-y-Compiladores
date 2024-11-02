@@ -34,24 +34,26 @@ def input_recognition(inputs: list[str]) -> list[dict[str, dict[str, set[str]]]]
     return grammars
 
 
-def wtf_is_this(letter: str) -> str:
+def symbol_categorizer(letter: str) -> str:
     if letter == "e":
         return "epsilon"
+
     elif letter.isupper():
         return "non-terminal"
+
     elif len(letter) == 1:
         return "terminal"
 
 
 def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
 
-    def firsts_calculus(
+    def firsts_calculus_symbol(
         non_terminal: str,
         recursion: int = 0,
         cache: bool = True,
     ) -> set:
-        # terminal case (1)
-        if wtf_is_this(non_terminal) == "terminal":
+        # terminal case, we return it (1)
+        if symbol_categorizer(non_terminal) == "terminal":
             return {non_terminal}
 
         # non-terminal case (2)
@@ -73,17 +75,17 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
                 try:
                     non_epsilon_found = False
 
-                    # for each letter of that production...
-                    for letter in production:
-                        letter_firsts = firsts_calculus(letter, recursion + 1)
+                    # for each symbol of that production...
+                    for symbol in production:
+                        symbol_firsts = firsts_calculus_symbol(symbol, recursion + 1)
 
                         # if we find a firsts set with no epsilon, we add that set (2.a)
-                        if "e" not in letter_firsts:
-                            grammar[non_terminal]["firsts"].update(letter_firsts)
+                        if "e" not in symbol_firsts:
+                            grammar[non_terminal]["firsts"].update(symbol_firsts)
                             non_epsilon_found = True
                             break
 
-                    # if every letter has a firsts set with epsilon, we add epsilon (2.b)
+                    # if every symbol has a firsts set that includes epsilon, we add epsilon (2.b)
                     if not non_epsilon_found:
                         grammar[non_terminal]["firsts"].add("e")
 
@@ -92,19 +94,6 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
                     pass
 
             return grammar[non_terminal]["firsts"]
-
-    def firsts_search() -> None:
-        # we will repeat until there's no updates
-        while True:
-            last_grammar = copy.deepcopy(grammar)
-
-            # we search the firsts for each non-terminal
-            for non_terminal in grammar.keys():
-                non_terminal_firsts = firsts_calculus(non_terminal, cache=False)
-                grammar[non_terminal]["firsts"].update(non_terminal_firsts)
-
-            if grammar == last_grammar:
-                break
 
     def follows_calculus(
         non_terminal: str,
@@ -124,11 +113,11 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
                     # if the right hand letter is a terminal, add it (2)
                     if index + 1 < len(production):
                         next_letter = production[index + 1]
-                        if wtf_is_this(next_letter) == "terminal":
+                        if symbol_categorizer(next_letter) == "terminal":
                             grammar[non_terminal]["follows"].add(next_letter)
                         else:
                             grammar[non_terminal]["follows"].update(
-                                firsts_calculus(next_letter) - {"e"}
+                                firsts_calculus_symbol(next_letter) - {"e"}
                             )
 
                     # if the right hand letter is the last one, add the follows of the left hand (3)
@@ -137,22 +126,29 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
 
         return grammar[non_terminal]["follows"]
 
-    def follows_search() -> None:
+    def calculus_select(search: str) -> None:
         # we will repeat until there's no updates
         while True:
             last_grammar = copy.deepcopy(grammar)
 
-            # we search the follows for each non-terminal
+            # we search the firsts or follows for each non-terminal
             for non_terminal in grammar.keys():
-                non_terminal_follows = follows_calculus(non_terminal, cache=False)
-                grammar[non_terminal]["follows"].update(non_terminal_follows)
+                if search == "firsts":
+                    non_terminal_firsts = firsts_calculus_symbol(
+                        non_terminal, cache=False
+                    )
+                    grammar[non_terminal]["firsts"].update(non_terminal_firsts)
+                elif search == "follows":
+                    non_terminal_follows = follows_calculus(non_terminal, cache=False)
+                    grammar[non_terminal]["follows"].update(non_terminal_follows)
 
+            # if there's no updates in an iteration, if finishes the search
             if grammar == last_grammar:
                 break
 
     # principal search body
-    firsts_search()
-    # follows_search()
+    calculus_select("firsts")
+    # search_select("follows")
 
 
 def result_printer(grammar: dict[str, dict[str, set[str]]]) -> None:
@@ -165,15 +161,19 @@ def result_printer(grammar: dict[str, dict[str, set[str]]]) -> None:
 
 
 if __name__ == "__main__":
-
+    # input needs to be in the same folder of this code
     script_dir = os.path.dirname(__file__)
     input_file_path = os.path.join(script_dir, "input.txt")
 
+    # input is read as a matrix
     with open(input_file_path, "r") as file:
         inputs = [i.split() for i in file.readlines()]
 
+    # matrix is parsed into a list of dictionaries with it's non-terminals as keys
+    # each non-terminal value is another dictionary with "productions", "firsts" and "follows"
     grammars = input_recognition(inputs)
 
+    # we fill the "firsts" and "follows" dictionary of each non-terminal, and """"that's all"""" (horrific XD)
     for case_index, grammar in enumerate(grammars):
         firsts_and_follows(grammar)
         result_printer(grammar)
