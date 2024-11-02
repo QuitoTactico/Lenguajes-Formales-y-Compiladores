@@ -1,7 +1,7 @@
 import os
 
 
-def input_recognition(inputs: list[str]) -> list[dict[str, dict[str, list[str]]]]:
+def input_recognition(inputs: list[str]) -> list[dict[str, dict[str, set[str]]]]:
     grammars = []
 
     grammars_to_read = int(inputs[0][0])
@@ -11,44 +11,56 @@ def input_recognition(inputs: list[str]) -> list[dict[str, dict[str, list[str]]]
     for _ in range(grammars_to_read):
         grammar_len = int(inputs[line_index][0])
 
-        grammar = {}
+        grammar = {"productions": {}, "firsts": {}, "follows": {}}
         for i in range(line_index + 1, line_index + 1 + grammar_len):
             non_terminal, *productions = inputs[i]
-            if non_terminal not in grammar:
-                grammar[non_terminal] = []
-            grammar[non_terminal].extend(productions)
+            if non_terminal not in grammar["productions"]:
+                grammar["productions"][non_terminal] = set()
+                grammar["firsts"][non_terminal] = set()
+                grammar["follows"][non_terminal] = set()
+            grammar["follows"][non_terminal].update(productions)
 
-        grammars.append({"productions": grammar})
+        grammars.append()
 
         line_index += 1 + grammar_len
 
     return grammars
 
 
-def firsts(grammar: dict[str, dict[str, list[str]]]) -> None:
+def wtf_is_this(letter: str) -> str:
+    if letter == "e":
+        return "epsilon"
+    elif letter.isupper():
+        return "non-terminal"
+    elif letter.islower():
+        return "terminal"
+
+
+def firsts(grammar: dict[str, dict[str, set[str]]]) -> None:
+    def first(letter: str):
+        if wtf_is_this(letter) == "terminal":
+            grammar
+
+    for i in grammar["productions"].keys():
+        pass
+
+
+def follows(grammar: dict[str, dict[str, set[str]]]) -> None:
     pass
 
 
-def follows(grammar: dict[str, dict[str, list[str]]]) -> None:
-    pass
-
-
-def result_printer(grammar: dict[str, dict[str, list[str]]]) -> None:
+def result_printer(grammar: dict[str, dict[str, set[str]]]) -> None:
     pass
 
 
 if __name__ == "__main__":
 
-    # actual directory of the script
-    # this is to use the input file in the same directory independent of the terminal path
     script_dir = os.path.dirname(__file__)
     input_file_path = os.path.join(script_dir, "input.txt")
 
     with open(input_file_path, "r") as file:
-        # the input is being read as a string matrix from the start
         inputs = [i.split() for i in file.readlines()]
 
-    # list of dictionaries with each grammar details
     grammars = input_recognition(inputs)
 
     for case_index, grammar in enumerate(grammars):
