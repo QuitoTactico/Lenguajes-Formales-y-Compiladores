@@ -47,7 +47,7 @@ def symbol_categorizer(letter: str) -> str:
 
 def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
 
-    def firsts_symbol(
+    def firsts_for_symbols(
         non_terminal: str,
         recursion: int = 0,
         cache: bool = True,
@@ -77,7 +77,7 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
 
                     # for each symbol of that production...
                     for symbol in production:
-                        symbol_firsts = firsts_symbol(symbol, recursion + 1)
+                        symbol_firsts = firsts_for_symbols(symbol, recursion + 1)
 
                         # if we find a firsts set with no epsilon, we add that set (2.a)
                         if "e" not in symbol_firsts:
@@ -95,12 +95,12 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
 
             return grammar[non_terminal]["firsts"]
 
-    def firsts_word(word: str) -> set:
+    def firsts_for_words(word: str) -> set:
         word_firsts = set()
 
         # for every symbol in that word...
         for index, symbol in enumerate(word):
-            symbol_firsts = firsts_symbol(symbol)
+            symbol_firsts = firsts_for_symbols(symbol)
 
             # add every non-epsilon symbols of that symbol firsts (1)
             word_firsts.update(symbol_firsts - {"e"})
@@ -121,29 +121,38 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
         recursion: int = 0,
         cache: bool = True,
     ) -> set:
-        # if the non-terminal is the initial symbol "S", add $(1)
+        # if the non-terminal is the initial symbol "S", add $ (1)
         if non_terminal == "S":
             grammar[non_terminal]["follows"].add("$")
 
-        # for each production of each non-terminal...
-        for nt in grammar.keys():
-            for production in grammar[nt]["productions"]:
-                if non_terminal in production:
-                    index = production.index(non_terminal)
+        # for each production of this non-terminal...
+        for production in grammar[non_terminal]["productions"]:
 
-                    # if the right hand letter is a terminal, add it (2)
-                    if index + 1 < len(production):
-                        next_letter = production[index + 1]
-                        if symbol_categorizer(next_letter) == "terminal":
-                            grammar[non_terminal]["follows"].add(next_letter)
-                        else:
-                            grammar[non_terminal]["follows"].update(
-                                firsts_symbol(next_letter) - {"e"}
+            # for each symbol in that production...
+            for index, symbol in enumerate(production):
+
+                # if that symbol is a non-terminal and has a word "beta" after itself,
+                # add the firsts of beta excepting epsilon to that symbol's follows (2)
+                if symbol_categorizer(symbol) == "non-terminal":
+
+                    if index != len(production) - 1:
+
+                        beta = production[index + 1 :]
+                        beta_firsts = firsts_for_words(beta)
+
+                        grammar[symbol]["follows"].update(beta_firsts - {"e"})
+
+                        # if epsilon is in that beta firsts, add the non-terminal's follows to this symbol's follows (4)
+                        if "e" in beta_firsts:
+                            grammar[symbol]["follows"].update(
+                                grammar[non_terminal]["follows"]
                             )
 
-                    # if the right hand letter is the last one, add the follows of the left hand (3)
+                    # if it's the last symbol in that production, also add the non-terminal's follows to this symbol's follows (3)
                     else:
-                        grammar[non_terminal]["follows"].update(grammar[nt]["follows"])
+                        grammar[symbol]["follows"].update(
+                            grammar[non_terminal]["follows"]
+                        )
 
         return grammar[non_terminal]["follows"]
 
@@ -155,7 +164,7 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
             # we search the firsts or follows for each non-terminal
             for non_terminal in grammar.keys():
                 if search == "firsts":
-                    non_terminal_firsts = firsts_symbol(non_terminal, cache=False)
+                    non_terminal_firsts = firsts_for_symbols(non_terminal, cache=False)
                     grammar[non_terminal]["firsts"].update(non_terminal_firsts)
                 elif search == "follows":
                     non_terminal_follows = follows(non_terminal, cache=False)
@@ -167,7 +176,7 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
 
     # principal search body
     search_select("firsts")
-    # search_select("follows")
+    search_select("follows")
 
 
 # ======================== MAIN BODY ========================
@@ -204,7 +213,7 @@ def result_printer(grammars: list[dict[str, dict[str, set[str]]]]) -> None:
 
 
 if __name__ == "__main__":
-    filename = "input2.txt"
+    filename = "input.txt"
     grammars = get_firsts_and_follows(filename)
     result_printer(grammars)
 
