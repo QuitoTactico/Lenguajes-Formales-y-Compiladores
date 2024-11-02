@@ -43,12 +43,56 @@ def wtf_is_this(letter: str) -> str:
 
 
 def firsts(grammar: dict[str, dict[str, set[str]]]) -> None:
-    def first(letter: str):
-        if wtf_is_this(letter) == "terminal":
-            grammar
+    def first(non_terminal: str, recursion: int = 0) -> set:
+        # terminal case (1)
+        if wtf_is_this(non_terminal) == "terminal":
+            return non_terminal
+        
+        # non-terminal case (2)
+        else:
+            # if it has been already calculated     
+            if grammar[non_terminal]['firsts']:
+                return grammar[non_terminal]['firsts']
 
-    for i in grammar.keys():
-        print(i)
+            # check for the epsilons first (2.c)
+            if "e" in grammar[non_terminal]['productions']:
+                grammar[non_terminal]['firsts'].add('e')
+
+            # if it reached the recursion limit
+            elif recursion == 20:
+                raise RecursionError
+
+            # for each production of that non-terminal...
+            for production in grammar[non_terminal]['productions']:
+                try:
+                    non_epsilon_found = False
+
+                    # for each letter of that production...
+                    for letter in production:
+                        letter_firsts = first(letter, recursion+1)
+
+                        # if we find an firsts set with no epsilon, we add that set (2.a)
+                        if 'e' not in letter_firsts:
+                            grammar[non_terminal]['firsts'].update(letter_firsts)
+                            non_epsilon_found = True
+                            break
+                            
+                    # if every letter has a firsts set with epsilon, we add epsilon (2.b)
+                    if non_epsilon_found == False:
+                        grammar[non_terminal]['firsts'].add('e')
+
+                # if it reaches the recursion limit, we return the firsts we were capable of obtain
+                except:
+                    #return grammar[non_terminal]['firsts']
+                    pass
+
+            return grammar[non_terminal]['firsts']
+
+
+    for non_terminal in grammar.keys():
+        non_terminal_firsts = first(non_terminal)
+
+        grammar[non_terminal]['firsts'].update(non_terminal_firsts)
 
 
 def follows(grammar: dict[str, dict[str, set[str]]]) -> None:
@@ -73,6 +117,7 @@ if __name__ == "__main__":
         firsts(grammar)
         follows(grammar)
         result_printer(grammar)
+        print()
 
 
 #
