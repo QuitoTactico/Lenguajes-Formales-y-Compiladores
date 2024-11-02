@@ -98,17 +98,18 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
     def firsts_word(word: str) -> set:
         word_firsts = set()
 
+        # for every symbol in that word...
         for index, symbol in enumerate(word):
-            # add every non-epsilon symbols of that symbol firsts (1)
             symbol_firsts = firsts_symbol(symbol)
 
+            # add every non-epsilon symbols of that symbol firsts (1)
             word_firsts.update(symbol_firsts - {"e"})
 
             # we keep adding the firsts of each symbol until there's no epsilon in the search (2, 3)
             if "e" not in symbol_firsts:
                 break
 
-            # if we are in the last symbol and epsilon was in every firsts set, we add epsilon
+            # if we are in the last symbol and epsilon was in every firsts set, we add epsilon (4)
             elif index == len(word) - 1:
                 word_firsts.add("e")
 
@@ -166,7 +167,7 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
 
     # principal search body
     search_select("firsts")
-    #search_select("follows")
+    # search_select("follows")
 
 
 def result_printer(grammar: dict[str, dict[str, set[str]]]) -> None:
@@ -177,6 +178,8 @@ def result_printer(grammar: dict[str, dict[str, set[str]]]) -> None:
             )
     print()
 
+
+# =========================== MAIN ===========================
 
 if __name__ == "__main__":
     # input needs to be in the same folder of this code
