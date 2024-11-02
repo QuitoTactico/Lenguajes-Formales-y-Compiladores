@@ -1,4 +1,5 @@
 import os
+import copy
 
 
 def input_recognition(inputs: list[str]) -> list[dict[str, dict[str, set[str]]]]:
@@ -87,17 +88,65 @@ def firsts(grammar: dict[str, dict[str, set[str]]]) -> None:
 
             return grammar[non_terminal]["firsts"]
 
-    # two tries, the second one is useful for the non-terminals who exceeded the recursion limit
-    for i in range(2):
+    # we will repeat until there's no updates
+    while True:
+        last_grammar = copy.deepcopy(grammar)
+
         # we search the firsts for each non-terminal
         for non_terminal in grammar.keys():
             non_terminal_firsts = first(non_terminal, cache=False)
 
             grammar[non_terminal]["firsts"].update(non_terminal_firsts)
 
+        if grammar == last_grammar:
+            break
+
 
 def follows(grammar: dict[str, dict[str, set[str]]]) -> None:
-    pass
+    def follow(non_terminal: str, recursion: int = 0, cache: bool = True) -> set:
+        # if the non-terminal is the initial symbol "S", add $(1)
+        if non_terminal == "S":
+            grammar[non_terminal]["follows"].add("$")
+
+        # for each production of the non-terminal...
+        for production in grammar[non_terminal]["productions"]:
+
+            # for each letter in the production...
+            for index, letter in enumerate(production):
+
+                # we will name the non-terminal input as left hand, and the actual letter as right hand letter
+
+                # if we are in a non-terminal right hand...
+                if wtf_is_this(letter) == "non-terminal":
+                    # there's another letter "beta" after this letter
+                    if index != len(production) - 1:
+
+                        beta_firsts = grammar[production[index+1]]["firsts"]
+                        
+                        # we add beta firsts excepting epsilon (1)
+                        grammar[letter]["follows"].update(grammar[production[index+1]]["firsts"]-{'e'})
+
+                        
+
+
+                    # if the right hand letter is the last one, add the follows of the left hand (3)
+                    else:
+                        grammar[letter]["follows"].update(
+                            grammar[non_terminal]["follows"]
+                        )
+
+    # we will repeat until there's no updates
+    while True:
+        last_grammar = copy.deepcopy(grammar)
+
+        # we search the follows for each non-terminal
+        for non_terminal in grammar.keys():
+            non_terminal_follows = follow(non_terminal, cache=False)
+
+            grammar[non_terminal]["follows"].update(non_terminal_follows)
+
+        if grammar == last_grammar:
+            break
 
 
 def result_printer(grammar: dict[str, dict[str, set[str]]]) -> None:
