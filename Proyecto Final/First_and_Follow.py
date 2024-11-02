@@ -53,7 +53,7 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
         cache: bool = True,
     ) -> set:
         # terminal case, we return it (1)
-        if symbol_categorizer(non_terminal) == "terminal":
+        if symbol_categorizer(non_terminal) in ["terminal", "epsilon"]:
             return {non_terminal}
 
         # non-terminal case (2)
@@ -173,10 +173,10 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
 # ======================== MAIN BODY ========================
 
 
-def get_firsts_and_follows() -> list[dict[str, dict[str, set[str]]]]:
+def get_firsts_and_follows(filename: str) -> list[dict[str, dict[str, set[str]]]]:
     # input needs to be in the same folder of this code
     script_dir = os.path.dirname(__file__)
-    input_file_path = os.path.join(script_dir, "input.txt")
+    input_file_path = os.path.join(script_dir, filename)
 
     # input is read as a matrix
     with open(input_file_path, "r") as file:
@@ -204,7 +204,8 @@ def result_printer(grammars: list[dict[str, dict[str, set[str]]]]) -> None:
 
 
 if __name__ == "__main__":
-    grammars = get_firsts_and_follows()
+    filename = "input2.txt"
+    grammars = get_firsts_and_follows(filename)
     result_printer(grammars)
 
 
