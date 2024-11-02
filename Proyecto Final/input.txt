@@ -1,0 +1,11 @@
+3
+2
+S AS A
+A a
+3
+S AB
+A aA a
+B bBc bc
+2
+S A
+A A b
