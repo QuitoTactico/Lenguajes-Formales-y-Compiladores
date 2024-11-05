@@ -31,7 +31,7 @@ def input_recognition(inputs: list[str]) -> list[dict[str, dict[str, set[str]]]]
 
         line_index += 1 + grammar_len
 
-    return grammars
+    return grammars, line_index
 
 
 def symbol_categorizer(letter: str) -> str:
@@ -193,13 +193,13 @@ def get_firsts_and_follows(filename: str) -> list[dict[str, dict[str, set[str]]]
 
     # matrix is parsed into a list of dictionaries with it's non-terminals as keys
     # each non-terminal value is another dictionary with "productions", "firsts" and "follows"
-    grammars = input_recognition(inputs)
+    grammars, line_index = input_recognition(inputs)
 
     # we fill the "firsts" and "follows" dictionary of each non-terminal, and """"that's all"""" (horrific XD)
     for grammar in grammars:
         firsts_and_follows(grammar)
 
-    return grammars
+    return grammars, line_index
 
 
 def result_printer(grammars: list[dict[str, dict[str, set[str]]]]) -> None:
@@ -214,7 +214,7 @@ def result_printer(grammars: list[dict[str, dict[str, set[str]]]]) -> None:
 
 if __name__ == "__main__":
     filename = "input.txt"
-    grammars = get_firsts_and_follows(filename)
+    grammars, line_index = get_firsts_and_follows(filename)
     result_printer(grammars)
 
 

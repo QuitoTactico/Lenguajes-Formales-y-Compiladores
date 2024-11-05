@@ -5,3 +5,11 @@ E +TE e
 T FU
 U *FU e
 F (S) i
+
+6
+i+i*i 1
+i*i+i 1
+(i+i)+i 1
+i+(i*i) 1
+i++ 1
+(())))) 1

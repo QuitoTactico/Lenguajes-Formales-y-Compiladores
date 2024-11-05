@@ -9,3 +9,14 @@ B bBc bc
 2
 S A
 A A b
+
+6
+a 1
+aaaaaaa 1
+aaaab 1
+abc 2
+aaaabbcc 2
+abbbbbc 2
+bbbbb 3
+b 3
+bbbaaabbb 3
