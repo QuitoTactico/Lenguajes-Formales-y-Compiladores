@@ -1,8 +1,12 @@
 import os
 import copy
 
+# =================================== FIRSTS AND FOLLOWS =====================================
 
-def input_recognition(inputs: list[str]) -> list[dict[str, dict[str, set[str]]]]:
+
+def input_grammar_recognition(
+    inputs: list[list[str]],
+) -> tuple[list[dict[str, dict[str, set[str]]]], int]:
     grammars = []
 
     grammars_to_read = int(inputs[0][0])
@@ -179,11 +183,22 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
     search_select("follows")
 
 
-# ======================== MAIN BODY ========================
+# =============================== SYNTACTIC ANALYSIS MATRIX ==================================
 
 
-def get_firsts_and_follows(filename: str) -> list[dict[str, dict[str, set[str]]]]:
-    # input needs to be in the same folder of this code
+def input_words_recognition(
+    inputs: list[list[str]],
+) -> list[tuple[str, int]]:
+    pass
+
+
+# ======================================= MAIN BODY ==========================================
+
+
+def get_raw_inputs(filename: str) -> list[list[str]]:
+    """returns the contents of the input file as a string matrix"""
+
+    # input file needs to be in the same folder of this code
     script_dir = os.path.dirname(__file__)
     input_file_path = os.path.join(script_dir, filename)
 
@@ -191,9 +206,20 @@ def get_firsts_and_follows(filename: str) -> list[dict[str, dict[str, set[str]]]
     with open(input_file_path, "r") as file:
         inputs = [i.split() for i in file.readlines()]
 
+    return inputs
+
+
+def get_all_firsts_and_follows(
+    filename: str,
+) -> tuple[list[dict[str, dict[str, set[str]]]], int]:
+    """master function that excecutes the first and follow function for each grammar"""
+
+    # get inputs as a matrix
+    inputs = get_raw_inputs(filename)
+
     # matrix is parsed into a list of dictionaries with it's non-terminals as keys
     # each non-terminal value is another dictionary with "productions", "firsts" and "follows"
-    grammars, line_index = input_recognition(inputs)
+    grammars, line_index = input_grammar_recognition(inputs)
 
     # we fill the "firsts" and "follows" dictionary of each non-terminal, and """"that's all"""" (horrific XD)
     for grammar in grammars:
@@ -202,7 +228,14 @@ def get_firsts_and_follows(filename: str) -> list[dict[str, dict[str, set[str]]]
     return grammars, line_index
 
 
-def result_printer(grammars: list[dict[str, dict[str, set[str]]]]) -> None:
+def get_all_syntax_analysis(filename: str, line_index: int) -> list[bool]:
+    pass
+
+
+def result_printer_first_and_follow(
+    grammars: list[dict[str, dict[str, set[str]]]]
+) -> None:
+    """just prints the"""
     for grammar in grammars:
         for result in ["firsts", "follows"]:
             for non_terminal in grammar.keys():
@@ -212,10 +245,19 @@ def result_printer(grammars: list[dict[str, dict[str, set[str]]]]) -> None:
         print()
 
 
+def result_printer_syntax_analysis():
+    pass
+
+
 if __name__ == "__main__":
-    filename = "input.txt"
-    grammars, line_index = get_firsts_and_follows(filename)
-    result_printer(grammars)
+    #                                             [    CHANGE THIS TO "input2.txt"     ]
+    filename = "input.txt"  # <------------------ [ IF YOU WANT TO SEE ANOTHER EXAMPLE ]
+
+    grammars, line_index = get_all_firsts_and_follows(filename)
+    result_printer_first_and_follow(grammars)
+
+    syntax_analysis = get_all_syntax_analysis(filename)
+    result_printer_syntax_analysis(syntax_analysis)
 
 
 #

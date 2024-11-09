@@ -1,13 +1,17 @@
 # README.md
 
 - **Group Members**: 
-  - Esteban Vergara Giraldo
+    - Esteban Vergara Giraldo ([QuitoTactico](https://github.com/QuitoTactico))
 
 - **Operating System**: Windows 10 Pro (x64)
 - **Programming Language**: Python 3.13.0 (x64)
 - **Tools Used**: 
-  - Visual Studio Code 1.93 (Windows x64) [Code Editor]
-  - Git 2.46.1 (Windows x64) [Version Control System]
+    - Visual Studio Code 1.93 (Windows x64) [Code Editor]
+    - Git 2.46.1 (Windows x64) [Version Control System]
+
+- **Project links**:
+    - [GitHub Repository](https://github.com/QuitoTactico/Lenguajes-Formales-y-Compiladores/tree/main/Proyecto%20Final)
+    - [Replit Repository](https://replit.com/@QuitoTactico/Lenguajes-Formales-y-Compiladores#Proyecto%20Final)
 
 # Instructions for Running
 
