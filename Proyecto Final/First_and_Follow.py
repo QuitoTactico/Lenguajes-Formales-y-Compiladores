@@ -2,6 +2,12 @@ import os
 import copy
 from collections import defaultdict
 
+# ==========================================  Config ========================================
+
+#                                          [ THE ORIGINAL INPUT DOESN'T HAVE LL(1) ]
+filename = "input.txt"  # <--------------- [      CHANGE THIS TO "input2.txt"      ]
+#                                          [   IF YOU WANT TO SEE ANOTHER EXAMPLE  ]
+
 # =================================  Grammars List Structure: ================================
 
 
@@ -267,7 +273,7 @@ def result_printer_first_and_follow(grammars: list[dict[str, dict[str, set]]]) -
 # ==================================== TOP-DOWN PARSER =======================================
 
 
-def LL1_validation(grammar: dict[str, dict[str, set]]):
+def LL1_validation(grammar: dict[str, dict[str, set]]) -> bool:
     pass
 
 
@@ -324,7 +330,9 @@ def create_syntax_analysis_matrix(
     return SAM, is_LL1
 
 
-def SAM_printer(SAM: dict[tuple, str], grammar: dict[str, dict[str, set]]) -> None:
+def SAM_printer(
+    SAM: dict[tuple, str], grammar: dict[str, dict[str, set]], is_LL1_extra: bool
+) -> None:
     """eh... yeah, prints the SAM, duuuh
     maybe it will look strange if an intersection has 2 or more productions, but that's for non LL(1) grammars
     """
@@ -356,6 +364,11 @@ def SAM_printer(SAM: dict[tuple, str], grammar: dict[str, dict[str, set]]) -> No
     # print that matrix separating every item with a tab
     for row in matrix:
         print("\t".join(row))
+
+    if not is_LL1_extra:
+        print(
+            "\nYou see?, there's two or more values in the same intersection\nit's not LL(1) and this table can't be used."
+        )
 
     print()
 
@@ -392,21 +405,25 @@ def get_raw_inputs(filename: str) -> list[list[str]]:
 
 
 if __name__ == "__main__":
-    #                                             [    CHANGE THIS TO "input2.txt"     ]
-    filename = "input.txt"  # <------------------ [ IF YOU WANT TO SEE ANOTHER EXAMPLE ]
 
     grammars, line_index = get_all_firsts_and_follows(filename)
     result_printer_first_and_follow(grammars)
 
+    print("\n", "=" * 15, "Extra: Top-Down parser", "=" * 15)
     SAMs = {}
     for grammar_index, grammar in enumerate(grammars, start=1):
+        print("=" * 10, "Grammar", grammar_index, "=" * 10)
         is_LL1 = LL1_validation(grammar)
-        SAM, is_LL1_extra = create_syntax_analysis_matrix(grammar)
-        SAM_printer(
-            SAM,
-            grammar,
+        print(
+            "It's LL(1)"
+            if is_LL1
+            else "It's NOT LL(1), we can't top-down parse it with this code."
         )
+
+        SAM, is_LL1_extra = create_syntax_analysis_matrix(grammar)
+        SAM_printer(SAM, grammar, is_LL1_extra)
         SAMs[grammar_index] = SAM
+
     # syntax_analysis = get_all_parsing(filename)
     # result_printer_parsing(syntax_analysis)
 
