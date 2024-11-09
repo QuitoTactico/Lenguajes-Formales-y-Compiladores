@@ -267,24 +267,47 @@ def result_printer_first_and_follow(grammars: list[dict[str, dict[str, set]]]) -
 # ==================================== TOP-DOWN PARSER =======================================
 
 
-def create_syntax_analysis_matrix(grammars: list[dict[str, dict[str, set]]]):
-    """creates the syntax analysis matrix (SAM) for each grammar, based on the productions, firsts and follows of each non-terminal. It's used for the top-down parsing"""
+def create_syntax_analysis_matrix(
+    grammar: dict[str, dict[str, set]]
+) -> dict[int, dict[tuple, str]]:
+    """creates the syntax analysis matrix (SAM) for a specific grammar, based on its productions, and the firsts and follows of each non-terminal. It's used for the top-down parsing in the table-driven predictive parsing algorithm"""
 
-    SAMs = {}
+    SAM = defaultdict(list)
 
-    for grammar_index, grammar in enumerate(grammars):
+    for non_terminal in grammar.keys():
+        non_terminal_follows = grammar[non_terminal]["follows"]
+        # for each A → α...
+        for production, production_firsts in grammar[non_terminal][
+            "productions_firsts"
+        ]:
 
-        SAM = defaultdict(list)
+            # for a in Pr(α)...
+            for first in production_firsts:
+                if first != "e":
 
-        for non_terminal in grammar.keys():
+                    # add A → α to M[A,a]
+                    if production not in SAM[(non_terminal, first)]:
+                        SAM[(non_terminal, first)].append(production)
 
-            # for each A → α
-            for production, production_firsts in grammar[non_terminal][
-                "productions_firsts"
-            ]:
-                pass
+            # if epsilon in Pr(α)
+            if "e" in production_firsts:
 
-        SAMs[grammar_index + 1] = SAM
+                # for terminal b in Sig(A)
+                for follow in non_terminal_follows:
+                    if symbol_categorizer(follow) == "terminal":
+
+                        # add A → α to M[A,b]
+                        if production not in SAM[(non_terminal, follow)]:
+                            SAM[(non_terminal, follow)].append(production)
+
+            # if epsilon in Pr(α) and $ in Sig (A)
+            if "e" in production_firsts and "$" in non_terminal_follows:
+
+                # add A → α to M[A,$]
+                if production not in SAM[(non_terminal, "$")]:
+                    SAM[(non_terminal, "$")].append(production)
+
+    return SAM
 
 
 def input_words_recognition(
@@ -320,12 +343,18 @@ def get_raw_inputs(filename: str) -> list[list[str]]:
 
 if __name__ == "__main__":
     #                                             [    CHANGE THIS TO "input2.txt"     ]
-    filename = "input.txt"  # <------------------ [ IF YOU WANT TO SEE ANOTHER EXAMPLE ]
+    filename = (
+        "input2.txt"  # <------------------ [ IF YOU WANT TO SEE ANOTHER EXAMPLE ]
+    )
 
     grammars, line_index = get_all_firsts_and_follows(filename)
     result_printer_first_and_follow(grammars)
 
-    SAMs = create_syntax_analysis_matrix(grammars)
+    SAMs = {}
+    for grammar_index, grammar in enumerate(grammars):
+        SAM = create_syntax_analysis_matrix(grammar)
+        print(SAM)
+        SAMs[grammar_index + 1] = SAM
     # syntax_analysis = get_all_parsing(filename)
     # result_printer_parsing(syntax_analysis)
 
