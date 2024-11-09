@@ -1,12 +1,50 @@
 import os
 import copy
+from collections import defaultdict
+
+# =================================  Grammars List Structure: ================================
+
+
+""" 
+grammars = [                                    list,                   values: dicts
+    {                                           dict,   keys: strings,  values: dicts
+        <non-terminal X> : {                    dict,   keys: strings,  values: sets
+            "productions" : (                   set,                    values: strings
+                <production Y1Y2Y3..Yk>,        string
+                ...
+            ),
+            "firsts" : (                        set,                    values: strings
+                <first a>,                      string
+                ...
+            ),
+            "follows" : (                       set,                    values: strings
+                <follow b>,                     string
+                ...
+            ),
+            "productions_firsts" : (            set,                    values: tuples
+                (                               tuple,                  values: string, tuple
+                    <production Y1Y2Y3..Yk>,     
+                    (                           tuple,                  values: strings
+                        <production_first c>,   string
+                        ...
+                    )
+                ),
+                ...
+            },
+        },
+        ...
+    },
+    ...  
+]
+"""
+
 
 # =================================== FIRSTS AND FOLLOWS =====================================
 
 
 def input_grammar_recognition(
     inputs: list[list[str]],
-) -> tuple[list[dict[str, dict[str, set[str]]]], int]:
+) -> tuple[list[dict[str, dict[str, set]]], int]:
     grammars = []
 
     grammars_to_read = int(inputs[0][0])
@@ -27,6 +65,7 @@ def input_grammar_recognition(
                     "productions": set(),
                     "firsts": set(),
                     "follows": set(),
+                    "productions_firsts": set(),  # useful for the SAM
                 }
 
             grammar[non_terminal]["productions"].update(productions)
@@ -34,6 +73,25 @@ def input_grammar_recognition(
         grammars.append(grammar)
 
         line_index += 1 + grammar_len
+
+    return grammars, line_index
+
+
+def get_all_firsts_and_follows(
+    filename: str,
+) -> tuple[list[dict[str, dict[str, set]]], int]:
+    """master function that executes the first and follow function for each grammar"""
+
+    # get inputs as a matrix
+    inputs = get_raw_inputs(filename)
+
+    # matrix is parsed into a list of dictionaries with it's non-terminals as keys
+    # each non-terminal value is another dictionary with "productions", "firsts" and "follows"
+    grammars, line_index = input_grammar_recognition(inputs)
+
+    # we fill the "firsts" and "follows" dictionary of each non-terminal, and """"that's all"""" (horrific XD)
+    for grammar in grammars:
+        firsts_and_follows(grammar)
 
     return grammars, line_index
 
@@ -49,7 +107,9 @@ def symbol_categorizer(letter: str) -> str:
         return "terminal"
 
 
-def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
+def firsts_and_follows(
+    grammar: dict[str, dict[str, set]], words_firsts: bool = False
+) -> None:
 
     def firsts_for_symbols(
         non_terminal: str,
@@ -119,7 +179,7 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
 
         return word_firsts
 
-    # only avaliable for symbols
+    # only available for symbols
     def follows(
         non_terminal: str,
         recursion: int = 0,
@@ -166,13 +226,22 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
             last_grammar = copy.deepcopy(grammar)
 
             # we search the firsts or follows for each non-terminal
-            for non_terminal in grammar.keys():
-                if search == "firsts":
+            if search == "firsts":
+                for non_terminal in grammar.keys():
                     non_terminal_firsts = firsts_for_symbols(non_terminal, cache=False)
                     grammar[non_terminal]["firsts"].update(non_terminal_firsts)
-                elif search == "follows":
+            elif search == "follows":
+                for non_terminal in grammar.keys():
                     non_terminal_follows = follows(non_terminal, cache=False)
                     grammar[non_terminal]["follows"].update(non_terminal_follows)
+            elif search == "productions_firsts":
+                for non_terminal in grammar.keys():
+                    for production in grammar[non_terminal]["productions"]:
+                        production_firsts = firsts_for_words(production)
+                        prod_firsts_tuple = (production, tuple(production_firsts))
+                        grammar[non_terminal]["productions_firsts"].add(
+                            prod_firsts_tuple
+                        )
 
             # if there's no updates in an iteration, if finishes the search
             if grammar == last_grammar:
@@ -181,14 +250,54 @@ def firsts_and_follows(grammar: dict[str, dict[str, set[str]]]) -> None:
     # principal search body
     search_select("firsts")
     search_select("follows")
+    search_select("productions_firsts")  # useful for the SAM
 
 
-# =============================== SYNTACTIC ANALYSIS MATRIX ==================================
+def result_printer_first_and_follow(grammars: list[dict[str, dict[str, set]]]) -> None:
+    """just prints the"""
+    for grammar in grammars:
+        for result in ["firsts", "follows"]:
+            for non_terminal in grammar.keys():
+                print(
+                    f"{result.capitalize()[:-1]}({non_terminal}) = {{{','.join(grammar[non_terminal][result])}}}"
+                )
+        print()
+
+
+# ==================================== TOP-DOWN PARSER =======================================
+
+
+def create_syntax_analysis_matrix(grammars: list[dict[str, dict[str, set]]]):
+    """creates the syntax analysis matrix (SAM) for each grammar, based on the productions, firsts and follows of each non-terminal. It's used for the top-down parsing"""
+
+    SAMs = {}
+
+    for grammar_index, grammar in enumerate(grammars):
+
+        SAM = defaultdict(list)
+
+        for non_terminal in grammar.keys():
+
+            # for each A → α
+            for production, production_firsts in grammar[non_terminal][
+                "productions_firsts"
+            ]:
+                pass
+
+        SAMs[grammar_index + 1] = SAM
 
 
 def input_words_recognition(
     inputs: list[list[str]],
 ) -> list[tuple[str, int]]:
+    pass
+
+
+def get_all_parsing(filename: str, line_index: int) -> list[bool]:
+    pass
+
+
+def result_printer_parsing():
     pass
 
 
@@ -209,46 +318,6 @@ def get_raw_inputs(filename: str) -> list[list[str]]:
     return inputs
 
 
-def get_all_firsts_and_follows(
-    filename: str,
-) -> tuple[list[dict[str, dict[str, set[str]]]], int]:
-    """master function that excecutes the first and follow function for each grammar"""
-
-    # get inputs as a matrix
-    inputs = get_raw_inputs(filename)
-
-    # matrix is parsed into a list of dictionaries with it's non-terminals as keys
-    # each non-terminal value is another dictionary with "productions", "firsts" and "follows"
-    grammars, line_index = input_grammar_recognition(inputs)
-
-    # we fill the "firsts" and "follows" dictionary of each non-terminal, and """"that's all"""" (horrific XD)
-    for grammar in grammars:
-        firsts_and_follows(grammar)
-
-    return grammars, line_index
-
-
-def get_all_syntax_analysis(filename: str, line_index: int) -> list[bool]:
-    pass
-
-
-def result_printer_first_and_follow(
-    grammars: list[dict[str, dict[str, set[str]]]]
-) -> None:
-    """just prints the"""
-    for grammar in grammars:
-        for result in ["firsts", "follows"]:
-            for non_terminal in grammar.keys():
-                print(
-                    f"{result.capitalize()[:-1]}({non_terminal}) = {{{','.join(grammar[non_terminal][result])}}}"
-                )
-        print()
-
-
-def result_printer_syntax_analysis():
-    pass
-
-
 if __name__ == "__main__":
     #                                             [    CHANGE THIS TO "input2.txt"     ]
     filename = "input.txt"  # <------------------ [ IF YOU WANT TO SEE ANOTHER EXAMPLE ]
@@ -256,8 +325,9 @@ if __name__ == "__main__":
     grammars, line_index = get_all_firsts_and_follows(filename)
     result_printer_first_and_follow(grammars)
 
-    syntax_analysis = get_all_syntax_analysis(filename)
-    result_printer_syntax_analysis(syntax_analysis)
+    SAMs = create_syntax_analysis_matrix(grammars)
+    # syntax_analysis = get_all_parsing(filename)
+    # result_printer_parsing(syntax_analysis)
 
 
 #
