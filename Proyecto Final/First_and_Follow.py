@@ -254,7 +254,7 @@ def firsts_and_follows(
 
 
 def result_printer_first_and_follow(grammars: list[dict[str, dict[str, set]]]) -> None:
-    """just prints the"""
+    """just prints the first and follows result according to the proposed output syntax"""
     for grammar in grammars:
         for result in ["firsts", "follows"]:
             for non_terminal in grammar.keys():
@@ -267,12 +267,20 @@ def result_printer_first_and_follow(grammars: list[dict[str, dict[str, set]]]) -
 # ==================================== TOP-DOWN PARSER =======================================
 
 
+def LL1_validation(grammar: dict[str, dict[str, set]]):
+    pass
+
+
 def create_syntax_analysis_matrix(
     grammar: dict[str, dict[str, set]]
-) -> dict[int, dict[tuple, str]]:
-    """creates the syntax analysis matrix (SAM) for a specific grammar, based on its productions, and the firsts and follows of each non-terminal. It's used for the top-down parsing in the table-driven predictive parsing algorithm"""
+) -> dict[tuple, str]:
+    """creates the syntax analysis matrix (SAM) for a specific grammar, based on its productions, and the firsts and follows of each non-terminal
+    it's used for the top-down parsing in the table-driven predictive parsing algorithm
+    it also provides an additional proof of not being LL(1) if an intersection has more that one value
+    """
 
     SAM = defaultdict(list)
+    is_LL1 = True
 
     for non_terminal in grammar.keys():
         non_terminal_follows = grammar[non_terminal]["follows"]
@@ -307,7 +315,49 @@ def create_syntax_analysis_matrix(
                 if production not in SAM[(non_terminal, "$")]:
                     SAM[(non_terminal, "$")].append(production)
 
-    return SAM
+    # additional to the LL(1) direct verification,
+    # if an intersetion has two or more values, it's not LL(1)
+    for i in SAM.values():
+        if len(i) > 1:
+            is_LL1 = False
+
+    return SAM, is_LL1
+
+
+def SAM_printer(SAM: dict[tuple, str], grammar: dict[str, dict[str, set]]) -> None:
+    """eh... yeah, prints the SAM, duuuh
+    maybe it will look strange if an intersection has 2 or more productions, but that's for non LL(1) grammars
+    """
+
+    # get every terminal and non-terminal
+    # non-terminals on input order
+    non_terminals = grammar.keys()
+    # terminals on reverse alphanumeric order (just to have the $ at the end)
+    terminals = sorted(set(key[1] for key in SAM.keys()), reverse=True)
+
+    # let's create a matrix to print this shit (aaaaaaah)
+    # initialize with ""
+    matrix = [[""] * (len(terminals) + 1) for _ in range(len(non_terminals) + 1)]
+
+    # put the terminals up there
+    matrix[0][1:] = terminals
+
+    for i, non_terminal in enumerate(non_terminals, start=1):
+        # put the non-terminals at the left
+        matrix[i][0] = non_terminal
+
+        # put everything else in the middle
+        for j, terminal in enumerate(terminals, start=1):
+
+            # separate productions on the same intersection with commas (hoping it doesn't look bad)
+            # if an intersection doesn't exist, put "" again
+            matrix[i][j] = ", ".join(SAM.get((non_terminal, terminal), ""))
+
+    # print that matrix separating every item with a tab
+    for row in matrix:
+        print("\t".join(row))
+
+    print()
 
 
 def input_words_recognition(
@@ -343,18 +393,20 @@ def get_raw_inputs(filename: str) -> list[list[str]]:
 
 if __name__ == "__main__":
     #                                             [    CHANGE THIS TO "input2.txt"     ]
-    filename = (
-        "input2.txt"  # <------------------ [ IF YOU WANT TO SEE ANOTHER EXAMPLE ]
-    )
+    filename = "input.txt"  # <------------------ [ IF YOU WANT TO SEE ANOTHER EXAMPLE ]
 
     grammars, line_index = get_all_firsts_and_follows(filename)
     result_printer_first_and_follow(grammars)
 
     SAMs = {}
-    for grammar_index, grammar in enumerate(grammars):
-        SAM = create_syntax_analysis_matrix(grammar)
-        print(SAM)
-        SAMs[grammar_index + 1] = SAM
+    for grammar_index, grammar in enumerate(grammars, start=1):
+        is_LL1 = LL1_validation(grammar)
+        SAM, is_LL1_extra = create_syntax_analysis_matrix(grammar)
+        SAM_printer(
+            SAM,
+            grammar,
+        )
+        SAMs[grammar_index] = SAM
     # syntax_analysis = get_all_parsing(filename)
     # result_printer_parsing(syntax_analysis)
 
