@@ -6,7 +6,7 @@ from itertools import combinations
 # ==========================================  Config ========================================
 
 #                                          [ THE ORIGINAL INPUT DOESN'T HAVE LL(1) ]
-filename = "input.txt"  # <--------------- [      CHANGE THIS TO "input2.txt"      ]
+filename = "input2.txt"  # <--------------- [      CHANGE THIS TO "input2.txt"      ]
 #                                          [   IF YOU WANT TO SEE ANOTHER EXAMPLE  ]
 
 # =================================  Grammars List Structure: ================================
@@ -440,16 +440,30 @@ def SAM_printer(
 
 
 def input_words_recognition(
-    inputs: list[list[str]],
+    inputs: list[list[str]], line_index: int
 ) -> list[tuple[str, int]]:
-    pass
+    words = []
+
+    words_to_read = int(inputs[line_index + 1][0])
+
+    for i in range(words_to_read):
+
+        word, target_grammar = inputs[line_index + i + 2]
+
+        words.append((word, target_grammar))
+
+    return words
 
 
 def get_all_parsing(
     filename: str, line_index: int, syntax_analysis_structure: dict[int, dict | bool]
 ) -> list[bool]:
-    print(syntax_analysis_structure)
-    pass
+
+    inputs = get_raw_inputs(filename)
+    words = input_words_recognition(inputs, line_index)
+
+    for word, target_grammar in words:
+        print(word)
 
 
 def result_printer_parsing():

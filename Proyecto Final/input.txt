@@ -10,7 +10,7 @@ B bBc bc
 S A
 A A b
 
-6
+9
 a 1
 aaaaaaa 1
 aaaab 1
