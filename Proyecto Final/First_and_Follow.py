@@ -10,7 +10,9 @@ filename = "input.txt"  # <--------------- [      CHANGE THIS TO "input2.txt"   
 #                                          [   IF YOU WANT TO SEE ANOTHER EXAMPLE  ]
 
 
-print_productions_in_analysis = True
+#                                               [ SET THIS ON True IF YOU WANT TO ]
+print_productions_in_analysis = True  # <------- [   SEE THE PRODUCTIONS USED IN   ]
+#                                               [   THE SYNTAX ANALYSIS PROCESS   ]
 
 
 # =================================  Grammars List Structure: ================================
@@ -475,6 +477,11 @@ def get_all_parsing(
     if not words:
         print(
             "There's no words to parse.\nPlease check the README.md to learn how to edit the input.txt to parse words."
+        )
+
+    if True not in [SAS[target_grammar]["is_LL1"] for target_grammar in SAS.keys()]:
+        print(
+            "There's no LL(1) grammars in your input. Every analysis will output Error.\nPlease check the README.md to learn how to set the second proposed input\nor edit the input.txt to set other grammars."
         )
 
     for word, target_grammar in words:
