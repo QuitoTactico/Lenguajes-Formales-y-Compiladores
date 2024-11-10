@@ -1,6 +1,6 @@
 import os
 import copy
-from collections import defaultdict
+from collections import defaultdict, deque
 from itertools import combinations
 
 # ==========================================  Config ========================================
@@ -8,6 +8,10 @@ from itertools import combinations
 #                                          [ THE ORIGINAL INPUT DOESN'T HAVE LL(1) ]
 filename = "input.txt"  # <--------------- [      CHANGE THIS TO "input2.txt"      ]
 #                                          [   IF YOU WANT TO SEE ANOTHER EXAMPLE  ]
+
+
+print_productions_in_analysis = True
+
 
 # =================================  Grammars List Structure: ================================
 
@@ -274,7 +278,9 @@ def result_printer_first_and_follow(grammars: list[dict[str, dict[str, set]]]) -
 # ==================================== TOP-DOWN PARSER =======================================
 
 
-def get_syntax_analysis_structure(grammars: list[dict[str, dict[str, set]]]) -> None:
+def get_syntax_analysis_structure(
+    grammars: list[dict[str, dict[str, set]]]
+) -> dict[int, dict[str, dict | bool]]:
     """generates a structure with the grammars, it's LL(1) validation and it's SAMs (Syntax Analysis Matrix)es, just to have everything in just one place. It's called Syntax Analysis Structure (SAS)"""
 
     SAS = {
@@ -339,7 +345,7 @@ def validation_printer(is_LL1: bool) -> None:
 
     else:
         print(
-            "It's NOT LL(1), we can't top-down parse this grammar using this method.\n"
+            "It's NOT LL(1), we can't top-down parse in this grammar using this method.\n"
         )
 
 
@@ -456,7 +462,7 @@ def input_words_recognition(
 
 
 def get_all_parsing(
-    filename: str, line_index: int, SAS: dict[int, dict | bool]
+    filename: str, line_index: int, SAS: dict[int, dict[str, dict | bool]]
 ) -> list[bool]:
 
     inputs = get_raw_inputs(filename)
@@ -474,9 +480,9 @@ def get_all_parsing(
     for word, target_grammar in words:
 
         if SAS[target_grammar]["is_LL1"]:
-            result = analyze(word, SAS)
+            result = analyze(word, SAS[target_grammar]["SAM"], target_grammar)
 
-            belonging = "BELOGS" if result else "DOESN'T BELONG"
+            belonging = "BELONGS" if result else "DOESN'T BELONG"
             message = f"this word {belonging} to Grammar #{target_grammar}"
 
             parsing_results.append((word, target_grammar, str(result), message))
@@ -489,13 +495,61 @@ def get_all_parsing(
     return parsing_results
 
 
-def analyze(word, SAS):
-    import random
+def analyze(word: str, SAM: dict[tuple, list[str]], target_grammar: int) -> bool:
+    """interpretation of the [top-down predictive non-recursive syntax analysis] proposed pseudocode (4.34) (that's a looong name)"""
 
-    return random.random() < 0.5
+    if print_productions_in_analysis:
+        print("\n", "=" * 10, word, "|", f"Grammar #{target_grammar}", "=" * 10)
+
+    w = deque(word + "$")
+    a = w.popleft()
+    pile = deque(["$", "S"])
+    X = pile[-1]
+
+    while X != "$":
+
+        if X == a:
+
+            if print_productions_in_analysis:
+                print(f"MATCH {X}")
+
+            pile.pop()
+            a = w.popleft()
+
+        elif symbol_categorizer(X) == "terminal":
+
+            if print_productions_in_analysis:
+                print(f"DOESN'T MATCH")
+
+            return False
+
+        elif (X, a) not in SAM.keys():
+
+            if print_productions_in_analysis:
+                print(f"IMPOSSIBLE PRODUCTION")
+
+            return False
+
+        else:
+            production = SAM[(X, a)][0]
+
+            if print_productions_in_analysis:
+                print(f"{X} → {production}")
+
+            pile.pop()
+
+            if production != "e":
+                pile.extend(reversed(production))
+
+        X = pile[-1]
+
+    return True
 
 
 def result_printer_parsing(parsing_results: list[tuple]):
+
+    if print_productions_in_analysis:
+        print()
 
     max_len = max(len(word) for word, *_ in parsing_results)
 
@@ -526,15 +580,12 @@ def get_raw_inputs(filename: str) -> list[list[str]]:
 if __name__ == "__main__":
 
     grammars, line_index = get_all_firsts_and_follows(filename)
-
     result_printer_first_and_follow(grammars)
 
     print("=" * 15, "Extra: Top-Down parser", "=" * 15)
 
     SAS = get_syntax_analysis_structure(grammars)
-
     parsing_results = get_all_parsing(filename, line_index, SAS)
-
     result_printer_parsing(parsing_results)
 
 
