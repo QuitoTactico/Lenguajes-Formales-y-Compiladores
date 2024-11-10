@@ -274,6 +274,27 @@ def result_printer_first_and_follow(grammars: list[dict[str, dict[str, set]]]) -
 # ==================================== TOP-DOWN PARSER =======================================
 
 
+def get_syntax_analysis_structure(grammars: list[dict[str, dict[str, set]]]) -> None:
+    """generates a structure with the grammars, it's LL(1) validation and it's SAMs (Syntax Analysis Matrix)es, just to have everything in just one place. It's called Syntax Analysis Structure (SAS)"""
+
+    SAS = {
+        grammar_index: {"grammar": grammar}
+        for grammar_index, grammar in enumerate(grammars, start=1)
+    }
+
+    for grammar_index, grammar in enumerate(grammars, start=1):
+        print("\n", "=" * 10, "Grammar", grammar_index, "=" * 10)
+        is_LL1 = LL1_validation(grammar)
+        validation_printer(is_LL1)
+
+        SAM, is_LL1_extra = create_syntax_analysis_matrix(grammar)
+        SAM_printer(SAM, grammar, is_LL1_extra)
+        SAS[grammar_index]["SAM"] = SAM
+        SAS[grammar_index]["is_LL1"] = is_LL1
+
+    return SAS
+
+
 def LL1_validation(grammar: dict[str, dict[str, set]]) -> bool:
     for non_terminal in grammar.keys():
         productions_firsts = grammar[non_terminal]["productions_firsts"]
@@ -424,7 +445,10 @@ def input_words_recognition(
     pass
 
 
-def get_all_parsing(filename: str, line_index: int) -> list[bool]:
+def get_all_parsing(
+    filename: str, line_index: int, syntax_analysis_structure: dict[int, dict | bool]
+) -> list[bool]:
+    print(syntax_analysis_structure)
     pass
 
 
@@ -452,20 +476,15 @@ def get_raw_inputs(filename: str) -> list[list[str]]:
 if __name__ == "__main__":
 
     grammars, line_index = get_all_firsts_and_follows(filename)
+
     result_printer_first_and_follow(grammars)
 
     print("=" * 15, "Extra: Top-Down parser", "=" * 15)
-    SAMs = {}
-    for grammar_index, grammar in enumerate(grammars, start=1):
-        print("\n", "=" * 10, "Grammar", grammar_index, "=" * 10)
-        is_LL1 = LL1_validation(grammar)
-        validation_printer(is_LL1)
 
-        SAM, is_LL1_extra = create_syntax_analysis_matrix(grammar)
-        SAM_printer(SAM, grammar, is_LL1_extra)
-        SAMs[grammar_index] = SAM
+    SAS = get_syntax_analysis_structure(grammars)
 
-    # syntax_analysis = get_all_parsing(filename)
+    syntax_analysis = get_all_parsing(filename, line_index, SAS)
+
     # result_printer_parsing(syntax_analysis)
 
 
