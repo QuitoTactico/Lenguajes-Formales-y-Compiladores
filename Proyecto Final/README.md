@@ -41,7 +41,7 @@ https://replit.com/@QuitoTactico/Lenguajes-Formales-y-Compiladores#Proyecto%20Fi
 
 3. (OPTIONAL) Change the script's config to `set the used input file` and set if the word analysis process `also prints the productions` used
 
-   ![image](https://github.com/user-attachments/assets/88bf91a2-d790-44af-a0ab-e37a2a4120c6)
+![image](https://github.com/user-attachments/assets/c2168224-db80-4589-9c99-cc33bcdcc449)
 
 4. Hit the green `Run` button at the top of the screen.
 
@@ -84,7 +84,7 @@ https://replit.com/@QuitoTactico/Lenguajes-Formales-y-Compiladores#Proyecto%20Fi
     
 5. (OPTIONAL) Change the script's config to `set the used input file` and set if the word analysis process `also prints the productions` used
 
-   ![image](https://github.com/user-attachments/assets/88bf91a2-d790-44af-a0ab-e37a2a4120c6)
+![image](https://github.com/user-attachments/assets/c2168224-db80-4589-9c99-cc33bcdcc449)
 
 6. Run the `First_and_Follow.py` file using:
     
@@ -128,7 +128,7 @@ https://replit.com/@QuitoTactico/Lenguajes-Formales-y-Compiladores#Proyecto%20Fi
 
 4. (OPTIONAL) Change the script's config to `set the used input file` and set if the word analysis process `also prints the productions` used
 
-   ![image](https://github.com/user-attachments/assets/88bf91a2-d790-44af-a0ab-e37a2a4120c6)
+![image](https://github.com/user-attachments/assets/c2168224-db80-4589-9c99-cc33bcdcc449)
 
 5. Run the `First_and_Follow.py` file using:
     
