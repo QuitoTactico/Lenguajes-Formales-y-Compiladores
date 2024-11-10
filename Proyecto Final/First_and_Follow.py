@@ -6,7 +6,7 @@ from itertools import combinations
 # ==========================================  Config ========================================
 
 #                                          [ THE ORIGINAL INPUT DOESN'T HAVE LL(1) ]
-filename = "input2.txt"  # <--------------- [      CHANGE THIS TO "input2.txt"      ]
+filename = "input.txt"  # <--------------- [      CHANGE THIS TO "input2.txt"      ]
 #                                          [   IF YOU WANT TO SEE ANOTHER EXAMPLE  ]
 
 # =================================  Grammars List Structure: ================================
@@ -283,7 +283,7 @@ def get_syntax_analysis_structure(grammars: list[dict[str, dict[str, set]]]) -> 
     }
 
     for grammar_index, grammar in enumerate(grammars, start=1):
-        print("\n", "=" * 10, "Grammar", grammar_index, "=" * 10)
+        print("\n", " " * 9, "=" * 10, "Grammar", grammar_index, "=" * 10)
         is_LL1 = LL1_validation(grammar)
         validation_printer(is_LL1)
 
@@ -450,24 +450,60 @@ def input_words_recognition(
 
         word, target_grammar = inputs[line_index + i + 2]
 
-        words.append((word, target_grammar))
+        words.append((word, int(target_grammar)))
 
     return words
 
 
 def get_all_parsing(
-    filename: str, line_index: int, syntax_analysis_structure: dict[int, dict | bool]
+    filename: str, line_index: int, SAS: dict[int, dict | bool]
 ) -> list[bool]:
 
     inputs = get_raw_inputs(filename)
     words = input_words_recognition(inputs, line_index)
 
+    parsing_results = []
+
+    print("\n", " " * 9, "=" * 11, "Parsing", "=" * 11)
+
+    if not words:
+        print(
+            "There's no words to parse.\nPlease check the README.md to learn how to edit the input.txt to parse words."
+        )
+
     for word, target_grammar in words:
-        print(word)
+
+        if SAS[target_grammar]["is_LL1"]:
+            result = analyze(word, SAS)
+
+            belonging = "BELOGS" if result else "DOESN'T BELONG"
+            message = f"this word {belonging} to Grammar #{target_grammar}"
+
+            parsing_results.append((word, target_grammar, str(result), message))
+
+        else:
+            message = f"COULDN'T PARSE, Grammar #{target_grammar} is not LL(1)"
+
+            parsing_results.append((word, target_grammar, "Error", message))
+
+    return parsing_results
 
 
-def result_printer_parsing():
-    pass
+def analyze(word, SAS):
+    import random
+
+    return random.random() < 0.5
+
+
+def result_printer_parsing(parsing_results: list[tuple]):
+
+    max_len = max(len(word) for word, *_ in parsing_results)
+
+    for word, target_grammar, result, message in parsing_results:
+
+        print(
+            f"analyze( {word.ljust(max_len)}  , Grammar #{target_grammar} ) = \t{result} \t>> {message}"
+        )
 
 
 # ======================================= MAIN BODY ==========================================
@@ -497,9 +533,9 @@ if __name__ == "__main__":
 
     SAS = get_syntax_analysis_structure(grammars)
 
-    syntax_analysis = get_all_parsing(filename, line_index, SAS)
+    parsing_results = get_all_parsing(filename, line_index, SAS)
 
-    # result_printer_parsing(syntax_analysis)
+    result_printer_parsing(parsing_results)
 
 
 #
