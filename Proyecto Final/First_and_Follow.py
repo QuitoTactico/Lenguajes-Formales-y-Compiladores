@@ -1,6 +1,7 @@
 import os
 import copy
 from collections import defaultdict
+from itertools import combinations
 
 # ==========================================  Config ========================================
 
@@ -274,7 +275,51 @@ def result_printer_first_and_follow(grammars: list[dict[str, dict[str, set]]]) -
 
 
 def LL1_validation(grammar: dict[str, dict[str, set]]) -> bool:
-    pass
+    for non_terminal in grammar.keys():
+        productions_firsts = grammar[non_terminal]["productions_firsts"]
+        non_terminal_follows = grammar[non_terminal]["follows"]
+
+        # for every A → α | β, with α ̸= β...
+        if len(productions_firsts) >= 2:
+            for (prod1, firsts1), (prod2, firsts2) in combinations(
+                productions_firsts, 2
+            ):
+
+                firsts1 = set(firsts1)
+                firsts2 = set(firsts2)
+
+                # (i, ii) equivalence. Checking production firsts intersection
+                if firsts1 & firsts2:
+                    print(
+                        f"Conflict found in {non_terminal} → {prod1} and {non_terminal} → {prod2}: they share this firsts: {firsts1 & firsts2}"
+                    )
+                    return False
+
+                # (iii, a) equivalence. If ε ∈ Pr(β), then Pr(α) ∩ Sig(A) = ∅
+                if "e" in firsts2 and (firsts1 & non_terminal_follows):
+                    print(
+                        f"Conflict found in {non_terminal} → {prod1} and {non_terminal} → {prod2}: ε ∈ Pr({prod2}), but Pr({prod2}) and Sig({non_terminal}) share this: {firsts1 & non_terminal_follows}"
+                    )
+                    return False
+
+                # (iii, b) equivalence. If ε ∈ Pr(α), then Pr(β) ∩ Sig(A) = ∅
+                if "e" in firsts1 and (firsts2 & non_terminal_follows):
+                    print(
+                        f"Conflict found in {non_terminal} → {prod1} and {non_terminal} → {prod2}: ε ∈ Pr({prod1}), but Pr({prod2}) and Sig({non_terminal}) share this: {firsts2 & non_terminal_follows}"
+                    )
+                    return False
+
+    return True
+
+
+def validation_printer(is_LL1: bool) -> None:
+    if is_LL1:
+        print("It's LL(1)!\n")
+
+    else:
+        print(
+            "It's NOT LL(1), we can't top-down parse this grammar using this method.\n"
+        )
 
 
 def create_syntax_analysis_matrix(
@@ -409,16 +454,12 @@ if __name__ == "__main__":
     grammars, line_index = get_all_firsts_and_follows(filename)
     result_printer_first_and_follow(grammars)
 
-    print("\n", "=" * 15, "Extra: Top-Down parser", "=" * 15)
+    print("=" * 15, "Extra: Top-Down parser", "=" * 15)
     SAMs = {}
     for grammar_index, grammar in enumerate(grammars, start=1):
-        print("=" * 10, "Grammar", grammar_index, "=" * 10)
+        print("\n", "=" * 10, "Grammar", grammar_index, "=" * 10)
         is_LL1 = LL1_validation(grammar)
-        print(
-            "It's LL(1)"
-            if is_LL1
-            else "It's NOT LL(1), we can't top-down parse it with this code."
-        )
+        validation_printer(is_LL1)
 
         SAM, is_LL1_extra = create_syntax_analysis_matrix(grammar)
         SAM_printer(SAM, grammar, is_LL1_extra)
